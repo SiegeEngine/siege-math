@@ -1,6 +1,8 @@
 [package]
 name = "siege-lib"
-version = "0.1.0"
+version = "0.1.0-unstable6"
 authors = ["Mike Dilger <mike@optcomp.nz>"]
 
 [dependencies]
+# FIXME: once simd is part of rust std and stable, use it.
+# simd = "0.2"
