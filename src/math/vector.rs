@@ -272,7 +272,13 @@ macro_rules! impl_vector {
             }
         }
 
-
+        impl<T: Copy + Mul<T,Output=T> + Add<T,Output=T>> $VecN<T> {
+            #[inline]
+            pub fn dot(&self, rhs: $VecN<T>) -> T {
+                self.$first * rhs.$first
+                    $(+ self.$field * rhs.$field)*
+            }
+        }
     }
 }
 
