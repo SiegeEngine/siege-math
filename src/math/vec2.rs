@@ -2,9 +2,12 @@
 use std::default::Default;
 use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
                Add, AddAssign, Sub, SubAssign};
+use float_cmp::{ApproxEqRatio, ApproxEqUlps};
+
 // FIXME: once simd is part of std and stable, use it
 //use simd::maths::sqrt::Rsqrt;
 
+#[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct Vec2(pub f32, pub f32);
 
@@ -143,5 +146,39 @@ impl<'a> SubAssign<&'a Vec2> for Vec2 {
     fn sub_assign(&mut self, other: &'a Vec2) {
         self.0 -= other.0;
         self.1 -= other.1;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    const VEC2: Vec2 = Vec2 { x: 1.0, y: 2.0 };
+
+    #[test]
+    fn test_new() {
+        assert_eq!(Vec2::new(1.0, 2.0), VEC2);
+    }
+
+    #[test]
+    fn test_zero() {
+        assert_eq!(Vec2::new(0.0, 0.0), Vec2::zero());
+        assert_eq!(Vec2::zero()[0], 0.0);
+        assert_eq!(Vec2::zero()[1], 0.0);
+    }
+
+    #[test]
+    fn test_squared_magnitude() {
+        assert!(VEC2.squared_magnitude().approx_eq_ulps(5.0, 1));
+    }
+
+    #[test]
+    fn test_index() {
+        assert_eq!(VEC2[0], VEC2.0);
+        assert_eq!(VEC2[1], VEC2.1);
+    }
+
+    #[test]
+    fn test_index_mut() {
+        assert_eq!(VEC2[0], VEC2.0);
+        assert_eq!(VEC2[1], VEC2.1);
     }
 }

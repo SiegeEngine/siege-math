@@ -5,6 +5,7 @@ use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
 // FIXME: once simd is part of std and stable, use it
 //use simd::maths::sqrt::Rsqrt;
 
+#[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct Vec3(pub f32, pub f32, pub f32);
 

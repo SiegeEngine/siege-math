@@ -6,3 +6,7 @@ authors = ["Mike Dilger <mike@optcomp.nz>"]
 [dependencies]
 # FIXME: once simd is part of rust std and stable, use it.
 # simd = "0.2"
+num-traits = "0.1"
+float-cmp = "0.2"
+serde = "0.9"
+serde_derive = "0.9"
