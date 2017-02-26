@@ -132,9 +132,9 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<T: Default> $VecN<T> {
+        impl<T: Default> Default for $VecN<T> {
             #[inline]
-            pub fn default() -> $VecN<T> {
+            fn default() -> $VecN<T> {
                 $VecN { $first: T::default(), $($field: T::default()),* }
             }
         }

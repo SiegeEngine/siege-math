@@ -135,9 +135,9 @@ macro_rules! impl_matrix {
             }
         }
 
-        impl<T: Default> $MatN<T> {
+        impl<T: Default> Default for $MatN<T> {
             #[inline]
-            pub fn default() -> $MatN<T> {
+            fn default() -> $MatN<T> {
                 $MatN { $first: $VecN::default(), $($field: $VecN::default()),* }
             }
         }
