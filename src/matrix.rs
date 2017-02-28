@@ -1,6 +1,6 @@
 
 use num_traits::identities::{Zero, One};
-use std::ops::{Index, IndexMut, Mul, Add, Neg};
+use std::ops::{Index, IndexMut, Mul, Add, Neg, Div, Sub};
 use std::default::Default;
 use super::vector::{Vec2, Vec3, Vec4, vec2, vec3, vec4};
 
@@ -136,6 +136,12 @@ impl<T> Mat2<T> {
             y: vec2(r0c1, r1c1),
         }
     }
+
+    #[inline]
+    pub fn from_cols(x: Vec2<T>, y: Vec2<T>) -> Mat2<T>
+    {
+        Mat2 { x: x, y: y }
+    }
 }
 
 impl<T> Mat3<T> {
@@ -149,6 +155,12 @@ impl<T> Mat3<T> {
             y: vec3(r0c1, r1c1, r2c1),
             z: vec3(r0c2, r1c2, r2c2),
         }
+    }
+
+    #[inline]
+    pub fn from_cols(x: Vec3<T>, y: Vec3<T>, z: Vec3<T>) -> Mat3<T>
+    {
+        Mat3 { x: x, y: y, z: z }
     }
 }
 
@@ -165,6 +177,12 @@ impl<T> Mat4<T> {
             z: vec4(r0c2, r1c2, r2c2, r3c2),
             p: vec4(r0c3, r1c3, r2c3, r3c3),
         }
+    }
+
+    #[inline]
+    pub fn from_cols(x: Vec4<T>, y: Vec4<T>, z: Vec4<T>, p: Vec4<T>) -> Mat4<T>
+    {
+        Mat4 { x: x, y: y, z: z, p: p }
     }
 }
 
@@ -306,6 +324,101 @@ impl<T> Mat4<T> {
         ::std::mem::swap(&mut self.y.z, &mut self.z.y);
         ::std::mem::swap(&mut self.y.w, &mut self.p.y);
         ::std::mem::swap(&mut self.z.w, &mut self.p.z);
+    }
+}
+
+// -- invert ------------------------------------------------------------------
+
+impl<T: Copy + One + Zero + PartialEq
+     + Neg<Output=T> + Div<Output=T> + Sub<Output=T> + Mul<Output=T>> Mat2<T> {
+    #[inline]
+    pub fn determinant(&self) -> T {
+        self.x.x * self.y.y - self.y.x * self.x.y
+    }
+
+    #[inline]
+    pub fn inverse(&self) -> Option<Mat2<T>> {
+        let d = self.determinant();
+        if d == T::zero() { return None; }
+        Some(Mat2 {
+            x: vec2( self.y.y/d ,-self.x.y/d),
+            y: vec2(-self.y.x/d , self.x.x/d),
+        })
+    }
+}
+
+impl<T: Copy + One + Zero + PartialEq
+     + Neg<Output=T> + Div<Output=T> + Sub<Output=T> + Mul<Output=T>> Mat3<T> {
+    #[inline]
+    pub fn determinant(&self) -> T {
+        self.x.x * (self.y.y * self.z.z - self.z.y * self.y.z)
+            - self.y.x * (self.x.y * self.z.z - self.z.y * self.x.z)
+            + self.z.x * (self.x.y * self.y.z - self.y.y * self.x.z)
+    }
+
+    #[inline]
+    pub fn inverse(&self) -> Option<Mat3<T>> {
+        let d = self.determinant();
+        if d == T::zero() { return None; }
+        let mut out = Mat3::from_cols(
+            self.y.cross(self.z) / d,
+            self.z.cross(self.x) / d,
+            self.x.cross(self.y) / d);
+        out.transpose();
+        Some(out)
+    }
+}
+
+impl<T: Copy + One + Zero + PartialEq
+     + Neg<Output=T> + Div<Output=T> + Sub<Output=T> + Mul<Output=T>> Mat4<T> {
+    #[inline]
+    pub fn determinant(&self) -> T {
+        self.x.x * Mat3 {
+            x: vec3(self.y.y, self.y.z, self.y.w),
+            y: vec3(self.z.y, self.z.z, self.z.w),
+            z: vec3(self.p.y, self.p.z, self.p.w) }.determinant()
+
+            - self.y.x * Mat3 {
+                x: vec3(self.x.y, self.x.z, self.x.w),
+                y: vec3(self.z.y, self.z.z, self.z.w),
+                z: vec3(self.p.y, self.p.z, self.p.w) }.determinant()
+
+            + self.z.x * Mat3 {
+                x: vec3(self.x.y, self.x.z, self.x.w),
+                y: vec3(self.y.y, self.y.z, self.y.w),
+                z: vec3(self.p.y, self.p.z, self.p.w) }.determinant()
+
+            - self.p.x * Mat3 {
+                x: vec3(self.x.y, self.x.z, self.x.w),
+                y: vec3(self.y.y, self.y.z, self.y.w),
+                z: vec3(self.z.y, self.z.z, self.z.w) }.determinant()
+    }
+
+    #[inline]
+    pub fn inverse(&self) -> Option<Mat4<T>> {
+        let d = self.determinant();
+        if d == T::zero() { return None; }
+        let id = T::one() / d;
+        let mut t = self.clone();
+        t.transpose();
+        let cf = |i, j| {
+            let mat = match i {
+                0 => Mat3::from_cols(t.y.truncate_n(j), t.z.truncate_n(j), t.p.truncate_n(j)),
+                1 => Mat3::from_cols(t.x.truncate_n(j), t.z.truncate_n(j), t.p.truncate_n(j)),
+                2 => Mat3::from_cols(t.x.truncate_n(j), t.y.truncate_n(j), t.p.truncate_n(j)),
+                3 => Mat3::from_cols(t.x.truncate_n(j), t.y.truncate_n(j), t.z.truncate_n(j)),
+                _ => panic!("out of range"),
+            };
+            let sign = if (i+j)&1 == 1 { -T::one() } else { T::one() };
+            mat.determinant() * sign *id
+        };
+
+        Some(Mat4 {
+            x: vec4(cf(0,0), cf(0,1), cf(0,2), cf(0,3)),
+            y: vec4(cf(1,0), cf(1,1), cf(1,2), cf(1,3)),
+            z: vec4(cf(2,0), cf(2,1), cf(2,2), cf(2,3)),
+            p: vec4(cf(3,0), cf(3,1), cf(3,2), cf(3,3)),
+        })
     }
 }
 
@@ -470,6 +583,7 @@ impl<T: Zero + PartialEq> Mat4<T> {
 }
 
 impl<T: PartialEq> Mat2<T> {
+    #[inline]
     pub fn is_symmetric(&self) -> bool {
         self.x.y == self.y.x
     }
@@ -477,6 +591,7 @@ impl<T: PartialEq> Mat2<T> {
 
 
 impl<T: PartialEq> Mat3<T> {
+    #[inline]
     pub fn is_symmetric(&self) -> bool {
         self.x.y == self.y.x &&
             self.x.z == self.z.x &&
@@ -485,6 +600,7 @@ impl<T: PartialEq> Mat3<T> {
 }
 
 impl<T: PartialEq> Mat4<T> {
+    #[inline]
     pub fn is_symmetric(&self) -> bool {
         self.x.y == self.y.x &&
             self.x.z == self.z.x &&
@@ -496,12 +612,14 @@ impl<T: PartialEq> Mat4<T> {
 }
 
 impl<T: Copy + PartialEq + Neg<Output=T>> Mat2<T> {
+    #[inline]
     pub fn is_skew_symmetric(&self) -> bool {
         self.x.y == -self.y.x
     }
 }
 
 impl<T: Copy + PartialEq + Neg<Output=T>> Mat3<T> {
+    #[inline]
     pub fn is_skew_symmetric(&self) -> bool {
         self.x.y == -self.y.x &&
             self.x.z == -self.z.x &&
@@ -510,6 +628,7 @@ impl<T: Copy + PartialEq + Neg<Output=T>> Mat3<T> {
 }
 
 impl<T: Copy + PartialEq + Neg<Output=T>> Mat4<T> {
+    #[inline]
     pub fn is_skew_symmetric(&self) -> bool {
         self.x.y == -self.y.x &&
             self.x.z == -self.z.x &&
@@ -654,5 +773,22 @@ mod tests {
         assert_eq!(product[1], 100);
         assert_eq!(product[2], 110);
         assert_eq!(product[3], 120);
+    }
+
+    #[test]
+    fn test_invert() {
+        assert_eq!(Mat2::<f64>::identity().inverse().unwrap(), Mat2::<f64>::identity());
+        assert_eq!(Mat3::<f64>::identity().inverse().unwrap(), Mat3::<f64>::identity());
+        assert_eq!(Mat4::<f64>::identity().inverse().unwrap(), Mat4::<f64>::identity());
+
+        /* Until we have ulps comparisons, this fails
+        let m = Mat4::new( 1.0, 2.0, 5.0, 4.0,
+                           5.0, 6.0, 7.0, 8.0,
+                           5.0, -6.0, 0.0, -8.0,
+                           -4.0, -3.0, -2.0, -1.0_f32 );
+        let n = m.inverse().unwrap();
+        let m2 = n.inverse().unwrap();
+        assert_eq!(m, m2);
+         */
     }
 }

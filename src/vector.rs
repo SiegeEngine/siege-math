@@ -109,6 +109,31 @@ impl<T> IndexMut<usize> for Vec4<T> {
     }
 }
 
+impl<T: Copy> Vec3<T> {
+    #[inline]
+    pub fn truncate_n(&self, n: usize) -> Vec2<T> {
+        match n {
+            0 => vec2(self.y, self.z),
+            1 => vec2(self.x, self.z),
+            2 => vec2(self.x, self.y),
+            _ => panic!("Index out of bounds for Vec3"),
+        }
+    }
+}
+
+impl<T: Copy> Vec4<T> {
+    #[inline]
+    pub fn truncate_n(&self, n: usize) -> Vec3<T> {
+        match n {
+            0 => vec3(self.y, self.z, self.w),
+            1 => vec3(self.x, self.z, self.w),
+            2 => vec3(self.x, self.y, self.w),
+            3 => vec3(self.x, self.y, self.z),
+            _ => panic!("Index out of bounds for Vec4"),
+        }
+    }
+}
+
 macro_rules! impl_vector {
     ($VecN:ident { $first:ident, $($field:ident),* }, $constructor:ident) => {
         impl<T> $VecN<T> {
@@ -286,6 +311,16 @@ impl_vector!(Vec2 { x, y }, vec2);
 impl_vector!(Vec3 { x, y, z }, vec3);
 impl_vector!(Vec4 { x, y, z, w }, vec4);
 
+impl<T: Copy + Mul<T,Output=T> + Sub<T,Output=T>> Vec3<T> {
+    #[inline]
+    pub fn cross(&self, rhs: Vec3<T>) -> Vec3<T> {
+        Vec3::new(
+            self.y*rhs.z - self.z*rhs.y,
+            self.z*rhs.x - self.x*rhs.z,
+            self.x*rhs.y - self.y*rhs.x
+        )
+    }
+}
 
 #[cfg(test)]
 mod tests {
