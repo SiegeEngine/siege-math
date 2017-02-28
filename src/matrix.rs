@@ -327,7 +327,7 @@ impl<T> Mat4<T> {
     }
 }
 
-// -- invert ------------------------------------------------------------------
+// -- inverse -----------------------------------------------------------------
 
 impl<T: Copy + One + Zero + PartialEq
      + Neg<Output=T> + Div<Output=T> + Sub<Output=T> + Mul<Output=T>> Mat2<T> {
@@ -776,10 +776,20 @@ mod tests {
     }
 
     #[test]
-    fn test_invert() {
+    fn test_inverse() {
         assert_eq!(Mat2::<f64>::identity().inverse().unwrap(), Mat2::<f64>::identity());
         assert_eq!(Mat3::<f64>::identity().inverse().unwrap(), Mat3::<f64>::identity());
         assert_eq!(Mat4::<f64>::identity().inverse().unwrap(), Mat4::<f64>::identity());
+
+        // This one works even with floating point inaccuracies.
+        // But ideally we need ULPS comparison functions for vectors and matrices.
+        let m = Mat3::new( 7.0, 2.0, 1.0,
+                           0.0, 3.0, -1.0,
+                           -3.0, 4.0, -2.0 );
+        let inv = m.inverse().unwrap();
+        assert_eq!(inv, Mat3::new( -2.0, 8.0, -5.0,
+                                    3.0, -11.0, 7.0,
+                                    9.0, -34.0, 21.0 ));
 
         // This one works even with floating point inaccuracies.
         // But ideally we need ULPS comparison functions for vectors and matrices.
