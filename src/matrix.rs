@@ -781,14 +781,16 @@ mod tests {
         assert_eq!(Mat3::<f64>::identity().inverse().unwrap(), Mat3::<f64>::identity());
         assert_eq!(Mat4::<f64>::identity().inverse().unwrap(), Mat4::<f64>::identity());
 
-        /* Until we have ulps comparisons, this fails
-        let m = Mat4::new( 1.0, 2.0, 5.0, 4.0,
-                           5.0, 6.0, 7.0, 8.0,
-                           5.0, -6.0, 0.0, -8.0,
-                           -4.0, -3.0, -2.0, -1.0_f32 );
-        let n = m.inverse().unwrap();
-        let m2 = n.inverse().unwrap();
-        assert_eq!(m, m2);
-         */
+        // This one works even with floating point inaccuracies.
+        // But ideally we need ULPS comparison functions for vectors and matrices.
+        let m = Mat4::new( 1.0, 1.0, 1.0, 0.0,
+                           0.0, 3.0, 1.0, 2.0,
+                           2.0, 3.0, 1.0, 0.0,
+                           1.0, 0.0, 2.0, 1.0 );
+        let inv = m.inverse().unwrap();
+        assert_eq!(inv, Mat4::new( -3.0, -0.5,   1.5,   1.0,
+                                    1.0,  0.25, -0.25, -0.5,
+                                    3.0,  0.25, -1.25, -0.5,
+                                    -3.0, 0.0,   1.0,   1.0 ));
     }
 }
