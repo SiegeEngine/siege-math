@@ -2,418 +2,657 @@
 use num_traits::identities::{Zero, One};
 use std::ops::{Index, IndexMut, Mul, Add, Neg};
 use std::default::Default;
-use super::{Vec2, Vec3, Vec4};
+use super::vector::{Vec2, Vec3, Vec4, vec2, vec3, vec4};
 
-// NOTE: we store matrices in row-major order.  So Matrix.a is the first row (not column).
+// NOTE: we store matrices in column-major order, which means we pre-multiply.
+// This is traditional so matrices directly copied to the GPU will work with
+// most other people's code, shaders, etc.  Also, it means vectors are stored
+// contiguously in the matrix.
+//
+// However, we hide this internal storage format from the interface, and
+// provide a row-major interface (e.g. via the [] operator and the new()
+// function parameter order).  This way the programmer can write matrices
+// in the same order that mathematicians write them.
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct Mat2<T> {
-    a: Vec2<T>,
-    b: Vec2<T>
+    x: Vec2<T>,
+    y: Vec2<T>
 }
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct Mat3<T> {
-    a: Vec3<T>,
-    b: Vec3<T>,
-    c: Vec3<T>
+    x: Vec3<T>,
+    y: Vec3<T>,
+    z: Vec3<T>
 }
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct Mat4<T> {
-    a: Vec4<T>,
-    b: Vec4<T>,
-    c: Vec4<T>,
-    d: Vec4<T>
+    x: Vec4<T>,
+    y: Vec4<T>,
+    z: Vec4<T>,
+    p: Vec4<T>
 }
 
-impl<T> Index<usize> for Mat2<T> {
-    type Output = Vec2<T>;
+// -- impl Index --------------------------------------------------------------
+
+// This is defined in row-major order
+impl<T> Index<(usize,usize)> for Mat2<T> {
+    type Output = T;
 
     #[inline]
-    fn index(&self, i: usize) -> &Vec2<T> {
-        match i {
-            0 => &self.a,
-            1 => &self.b,
+    fn index(&self, (row,col): (usize,usize)) -> &T {
+        match col {
+            0 => &self.x[row],
+            1 => &self.y[row],
             _ => panic!("Index out of bounds for Mat2"),
         }
     }
 }
 
-impl<T> Index<usize> for Mat3<T> {
-    type Output = Vec3<T>;
+impl<T> Index<(usize,usize)> for Mat3<T> {
+    type Output = T;
 
     #[inline]
-    fn index(&self, i: usize) -> &Vec3<T> {
-        match i {
-            0 => &self.a,
-            1 => &self.b,
-            2 => &self.c,
+    fn index(&self, (row,col): (usize,usize)) -> &T {
+        match col {
+            0 => &self.x[row],
+            1 => &self.y[row],
+            2 => &self.z[row],
             _ => panic!("Index out of bounds for Mat3"),
         }
     }
 }
 
-impl<T> Index<usize> for Mat4<T> {
-    type Output = Vec4<T>;
+impl<T> Index<(usize,usize)> for Mat4<T> {
+    type Output = T;
 
     #[inline]
-    fn index(&self, i: usize) -> &Vec4<T> {
-        match i {
-            0 => &self.a,
-            1 => &self.b,
-            2 => &self.c,
-            3 => &self.d,
+    fn index(&self, (row,col): (usize,usize)) -> &T {
+        match col {
+            0 => &self.x[row],
+            1 => &self.y[row],
+            2 => &self.z[row],
+            3 => &self.p[row],
             _ => panic!("Index out of bounds for Mat4"),
         }
     }
 }
 
-impl<T> IndexMut<usize> for Mat2<T> {
+// -- impl IndexMut -----------------------------------------------------------
+
+impl<T> IndexMut<(usize,usize)> for Mat2<T> {
     #[inline]
-    fn index_mut(&mut self, i: usize) -> &mut Vec2<T> {
-        match i {
-            0 => &mut self.a,
-            1 => &mut self.b,
+    fn index_mut(&mut self, (row,col): (usize,usize)) -> &mut T {
+        match col {
+            0 => &mut self.x[row],
+            1 => &mut self.y[row],
             _ => panic!("Index out of bounds for Mat2"),
         }
     }
 }
 
-impl<T> IndexMut<usize> for Mat3<T> {
+impl<T> IndexMut<(usize,usize)> for Mat3<T> {
     #[inline]
-    fn index_mut(&mut self, i: usize) -> &mut Vec3<T> {
-        match i {
-            0 => &mut self.a,
-            1 => &mut self.b,
-            2 => &mut self.c,
+    fn index_mut(&mut self, (row,col): (usize,usize)) -> &mut T {
+        match col {
+            0 => &mut self.x[row],
+            1 => &mut self.y[row],
+            2 => &mut self.z[row],
             _ => panic!("Index out of bounds for Mat3"),
         }
     }
 }
 
-impl<T> IndexMut<usize> for Mat4<T> {
+impl<T> IndexMut<(usize,usize)> for Mat4<T> {
     #[inline]
-    fn index_mut(&mut self, i: usize) -> &mut Vec4<T> {
-        match i {
-            0 => &mut self.a,
-            1 => &mut self.b,
-            2 => &mut self.c,
-            3 => &mut self.d,
+    fn index_mut(&mut self, (row,col): (usize,usize)) -> &mut T {
+        match col {
+            0 => &mut self.x[row],
+            1 => &mut self.y[row],
+            2 => &mut self.z[row],
+            3 => &mut self.p[row],
             _ => panic!("Index out of bounds for Mat4"),
         }
     }
 }
 
-
-macro_rules! impl_matrix {
-    ($MatN:ident { $first:ident, $($field:ident),* }, $constructor:ident, $VecN:ident) => {
-        impl<T> $MatN<T> {
-            /// Construct a new matrix
-            #[inline]
-            pub fn new($first: $VecN<T>, $($field: $VecN<T>),*) -> $MatN<T> {
-                $MatN { $first: $first,  $($field: $field),* }
-            }
-        }
-
-        /// Construct a new matrix
-        #[inline]
-        pub fn $constructor<T>($first: $VecN<T>, $($field: $VecN<T>),*) -> $MatN<T> {
-            $MatN::new($first, $($field),*)
-        }
-
-        impl<T: Zero> $MatN<T> {
-            #[inline]
-            pub fn zero() -> $MatN<T> {
-                $MatN { $first: $VecN::zero(), $($field: $VecN::zero()),* }
-            }
-        }
-
-        impl<T: Default> Default for $MatN<T> {
-            #[inline]
-            fn default() -> $MatN<T> {
-                $MatN { $first: $VecN::default(), $($field: $VecN::default()),* }
-            }
-        }
-
-        impl<T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<$MatN<T>> for $MatN<T> {
-            type Output = $MatN<T>;
-
-            #[inline]
-            fn mul(self, rhs: $MatN<T>) -> $MatN<T> {
-                $MatN {
-                    $first: self.$first * rhs,
-                    $($field: self.$field * rhs),*
-                }
-            }
-        }
-    }
-}
-
-impl_matrix!(Mat2 { a, b }, mat2, Vec2);
-impl_matrix!(Mat3 { a, b, c }, mat3, Vec3);
-impl_matrix!(Mat4 { a, b, c, d }, mat4, Vec4);
-
+// -- new ---------------------------------------------------------------------
 
 impl<T> Mat2<T> {
     #[inline]
-    pub fn transpose(&mut self) {
-        ::std::mem::swap(&mut self.a.y, &mut self.b.x);
+    pub fn new(r0c0: T, r0c1: T,
+               r1c0: T, r1c1: T) -> Mat2<T>
+    {
+        Mat2 {
+            x: vec2(r0c0, r1c0),
+            y: vec2(r0c1, r1c1),
+        }
     }
 }
 
 impl<T> Mat3<T> {
     #[inline]
-    pub fn transpose(&mut self) {
-        ::std::mem::swap(&mut self.a.y, &mut self.b.x);
-        ::std::mem::swap(&mut self.a.z, &mut self.c.x);
-        ::std::mem::swap(&mut self.b.z, &mut self.c.y);
+    pub fn new(r0c0: T, r0c1: T, r0c2: T,
+               r1c0: T, r1c1: T, r1c2: T,
+               r2c0: T, r2c1: T, r2c2: T) -> Mat3<T>
+    {
+        Mat3 {
+            x: vec3(r0c0, r1c0, r2c0),
+            y: vec3(r0c1, r1c1, r2c1),
+            z: vec3(r0c2, r1c2, r2c2),
+        }
     }
 }
 
 impl<T> Mat4<T> {
     #[inline]
-    pub fn transpose(&mut self) {
-        ::std::mem::swap(&mut self.a.y, &mut self.b.x);
-        ::std::mem::swap(&mut self.a.z, &mut self.c.x);
-        ::std::mem::swap(&mut self.a.w, &mut self.d.x);
-        ::std::mem::swap(&mut self.b.z, &mut self.c.y);
-        ::std::mem::swap(&mut self.b.w, &mut self.d.y);
-        ::std::mem::swap(&mut self.c.w, &mut self.d.z);
+    pub fn new(r0c0: T, r0c1: T, r0c2: T, r0c3: T,
+               r1c0: T, r1c1: T, r1c2: T, r1c3: T,
+               r2c0: T, r2c1: T, r2c2: T, r2c3: T,
+               r3c0: T, r3c1: T, r3c2: T, r3c3: T) -> Mat4<T>
+    {
+        Mat4 {
+            x: vec4(r0c0, r1c0, r2c0, r3c0),
+            y: vec4(r0c1, r1c1, r2c1, r3c1),
+            z: vec4(r0c2, r1c2, r2c2, r3c2),
+            p: vec4(r0c3, r1c3, r2c3, r3c3),
+        }
     }
 }
 
+// -- impl Default ------------------------------------------------------------
+
+impl<T: Default> Default for Mat2<T> {
+    #[inline]
+    fn default() -> Mat2<T> {
+        Mat2 {
+            x: vec2(T::default(), T::default()),
+            y: vec2(T::default(), T::default()),
+        }
+    }
+}
+
+impl<T: Default> Default for Mat3<T> {
+    #[inline]
+    fn default() -> Mat3<T> {
+        Mat3 {
+            x: vec3(T::default(), T::default(), T::default()),
+            y: vec3(T::default(), T::default(), T::default()),
+            z: vec3(T::default(), T::default(), T::default()),
+        }
+    }
+}
+
+impl<T: Default> Default for Mat4<T> {
+    #[inline]
+    fn default() -> Mat4<T> {
+        Mat4 {
+            x: vec4(T::default(), T::default(), T::default(), T::default()),
+            y: vec4(T::default(), T::default(), T::default(), T::default()),
+            z: vec4(T::default(), T::default(), T::default(), T::default()),
+            p: vec4(T::default(), T::default(), T::default(), T::default()),
+        }
+    }
+}
+
+// -- zero --------------------------------------------------------------------
+
+impl<T: Zero> Mat2<T> {
+    #[inline]
+    pub fn zero() -> Mat2<T>
+    {
+        Mat2 {
+            x: vec2(T::zero(), T::zero()),
+            y: vec2(T::zero(), T::zero()),
+        }
+    }
+}
+
+impl<T: Zero> Mat3<T> {
+    #[inline]
+    pub fn zero() -> Mat3<T>
+    {
+        Mat3 {
+            x: vec3(T::zero(), T::zero(), T::zero()),
+            y: vec3(T::zero(), T::zero(), T::zero()),
+            z: vec3(T::zero(), T::zero(), T::zero()),
+        }
+    }
+}
+
+impl<T: Zero> Mat4<T> {
+    #[inline]
+    pub fn zero() -> Mat4<T>
+    {
+        Mat4 {
+            x: vec4(T::zero(), T::zero(), T::zero(), T::zero()),
+            y: vec4(T::zero(), T::zero(), T::zero(), T::zero()),
+            z: vec4(T::zero(), T::zero(), T::zero(), T::zero()),
+            p: vec4(T::zero(), T::zero(), T::zero(), T::zero()),
+        }
+    }
+}
+
+// -- identity ---------------------------------------------------------------
+
 impl<T: Zero + One> Mat2<T> {
     #[inline]
-    pub fn identity() -> Mat2<T> {
+    pub fn identity() -> Mat2<T>
+    {
         Mat2 {
-            a: Vec2::new(T::one(), T::zero()),
-            b: Vec2::new(T::zero(), T::one()),
+            x: vec2(T::one(), T::zero()),
+            y: vec2(T::zero(), T::one()),
         }
     }
 }
 
 impl<T: Zero + One> Mat3<T> {
     #[inline]
-    pub fn identity() -> Mat3<T> {
+    pub fn identity() -> Mat3<T>
+    {
         Mat3 {
-            a: Vec3::new(T::one(), T::zero(), T::zero()),
-            b: Vec3::new(T::zero(), T::one(), T::zero()),
-            c: Vec3::new(T::zero(), T::zero(), T::one()),
+            x: vec3(T::one(), T::zero(), T::zero()),
+            y: vec3(T::zero(), T::one(), T::zero()),
+            z: vec3(T::zero(), T::zero(), T::one()),
         }
     }
 }
 
 impl<T: Zero + One> Mat4<T> {
     #[inline]
-    pub fn identity() -> Mat4<T> {
+    pub fn identity() -> Mat4<T>
+    {
         Mat4 {
-            a: Vec4::new(T::one(), T::zero(), T::zero(), T::zero()),
-            b: Vec4::new(T::zero(), T::one(), T::zero(), T::zero()),
-            c: Vec4::new(T::zero(), T::zero(), T::one(), T::zero()),
-            d: Vec4::new(T::zero(), T::zero(), T::zero(), T::one()),
+            x: vec4(T::one(), T::zero(), T::zero(), T::zero()),
+            y: vec4(T::zero(), T::one(), T::zero(), T::zero()),
+            z: vec4(T::zero(), T::zero(), T::one(), T::zero()),
+            p: vec4(T::zero(), T::zero(), T::zero(), T::one()),
         }
     }
 }
 
+// -- transpose ---------------------------------------------------------------
+
+impl<T> Mat2<T> {
+    #[inline]
+    pub fn transpose(&mut self) {
+        ::std::mem::swap(&mut self.x.y, &mut self.y.x);
+    }
+}
+
+impl<T> Mat3<T> {
+    #[inline]
+    pub fn transpose(&mut self) {
+        ::std::mem::swap(&mut self.x.y, &mut self.y.x);
+        ::std::mem::swap(&mut self.x.z, &mut self.z.x);
+        ::std::mem::swap(&mut self.y.z, &mut self.z.y);
+    }
+}
+
+impl<T> Mat4<T> {
+    #[inline]
+    pub fn transpose(&mut self) {
+        ::std::mem::swap(&mut self.x.y, &mut self.y.x);
+        ::std::mem::swap(&mut self.x.z, &mut self.z.x);
+        ::std::mem::swap(&mut self.x.w, &mut self.p.x);
+        ::std::mem::swap(&mut self.y.z, &mut self.z.y);
+        ::std::mem::swap(&mut self.y.w, &mut self.p.y);
+        ::std::mem::swap(&mut self.z.w, &mut self.p.z);
+    }
+}
+
+// -- multiply by matrix ------------------------------------------------------
+
+impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'b Mat2<T>> for &'a Mat2<T> {
+    type Output = Mat2<T>;
+
+    #[inline]
+    fn mul(self, rhs: &Mat2<T>) -> Mat2<T> {
+        Mat2 {
+            x: vec2( self.x.x * rhs.x.x + self.y.x * rhs.x.y,
+                     self.x.y * rhs.x.x + self.y.y * rhs.x.y),
+            y: vec2( self.x.x * rhs.y.x + self.y.x * rhs.y.y,
+                     self.x.y * rhs.y.x + self.y.y * rhs.y.y),
+        }
+    }
+}
+
+impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'b Mat3<T>> for &'a Mat3<T> {
+    type Output = Mat3<T>;
+
+    #[inline]
+    fn mul(self, rhs: &Mat3<T>) -> Mat3<T> {
+        Mat3 {
+            x: vec3( self.x.x * rhs.x.x + self.y.x * rhs.x.y + self.z.x * rhs.x.z,
+                     self.x.y * rhs.x.x + self.y.y * rhs.x.y + self.z.y * rhs.x.z,
+                     self.x.z * rhs.x.x + self.y.z * rhs.x.y + self.z.z * rhs.x.z),
+            y: vec3( self.x.x * rhs.y.x + self.y.x * rhs.y.y + self.z.x * rhs.y.z,
+                     self.x.y * rhs.y.x + self.y.y * rhs.y.y + self.z.y * rhs.y.z,
+                     self.x.z * rhs.y.x + self.y.z * rhs.y.y + self.z.z * rhs.y.z),
+            z: vec3( self.x.x * rhs.z.x + self.y.x * rhs.z.y + self.z.x * rhs.z.z,
+                     self.x.y * rhs.z.x + self.y.y * rhs.z.y + self.z.y * rhs.z.z,
+                     self.x.z * rhs.z.x + self.y.z * rhs.z.y + self.z.z * rhs.z.z),
+        }
+    }
+}
+
+impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'b Mat4<T>> for &'a Mat4<T> {
+    type Output = Mat4<T>;
+
+    #[inline]
+    fn mul(self, rhs: &Mat4<T>) -> Mat4<T> {
+        Mat4 {
+            x: vec4( self.x.x * rhs.x.x + self.y.x * rhs.x.y + self.z.x * rhs.x.z + self.p.x * rhs.x.w,
+                     self.x.y * rhs.x.x + self.y.y * rhs.x.y + self.z.y * rhs.x.z + self.p.y * rhs.x.w,
+                     self.x.z * rhs.x.x + self.y.z * rhs.x.y + self.z.z * rhs.x.z + self.p.z * rhs.x.w,
+                     self.x.w * rhs.x.x + self.y.w * rhs.x.y + self.z.w * rhs.x.z + self.p.w * rhs.x.w),
+            y: vec4( self.x.x * rhs.y.x + self.y.x * rhs.y.y + self.z.x * rhs.y.z + self.p.x * rhs.y.w,
+                     self.x.y * rhs.y.x + self.y.y * rhs.y.y + self.z.y * rhs.y.z + self.p.y * rhs.y.w,
+                     self.x.z * rhs.y.x + self.y.z * rhs.y.y + self.z.z * rhs.y.z + self.p.z * rhs.y.w,
+                     self.x.w * rhs.y.x + self.y.w * rhs.y.y + self.z.w * rhs.y.z + self.p.w * rhs.y.w),
+            z: vec4( self.x.x * rhs.z.x + self.y.x * rhs.z.y + self.z.x * rhs.z.z + self.p.x * rhs.z.w,
+                     self.x.y * rhs.z.x + self.y.y * rhs.z.y + self.z.y * rhs.z.z + self.p.y * rhs.z.w,
+                     self.x.z * rhs.z.x + self.y.z * rhs.z.y + self.z.z * rhs.z.z + self.p.z * rhs.z.w,
+                     self.x.w * rhs.z.x + self.y.w * rhs.z.y + self.z.w * rhs.z.z + self.p.w * rhs.z.w),
+            p: vec4( self.x.x * rhs.p.x + self.y.x * rhs.p.y + self.z.x * rhs.p.z + self.p.x * rhs.p.w,
+                     self.x.y * rhs.p.x + self.y.y * rhs.p.y + self.z.y * rhs.p.z + self.p.y * rhs.p.w,
+                     self.x.z * rhs.p.x + self.y.z * rhs.p.y + self.z.z * rhs.p.z + self.p.z * rhs.p.w,
+                     self.x.w * rhs.p.x + self.y.w * rhs.p.y + self.z.w * rhs.p.z + self.p.w * rhs.p.w)
+        }
+    }
+}
+
+// -- multiply by vector ------------------------------------------------------
+
+impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'a Vec2<T>> for &'b Mat2<T> {
+    type Output = Vec2<T>;
+
+    #[inline]
+    fn mul(self, rhs: &Vec2<T>) -> Vec2<T> {
+        Vec2::new( self.x.x * rhs.x + self.y.x * rhs.y,
+                   self.x.y * rhs.x + self.y.y * rhs.y )
+    }
+}
+
+impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'a Vec3<T>> for &'b Mat3<T> {
+    type Output = Vec3<T>;
+
+    #[inline]
+    fn mul(self, rhs: &Vec3<T>) -> Vec3<T> {
+        Vec3::new( self.x.x * rhs.x + self.y.x * rhs.y + self.z.x * rhs.z,
+                   self.x.y * rhs.x + self.y.y * rhs.y + self.z.y * rhs.z,
+                   self.x.z * rhs.x + self.y.z * rhs.y + self.z.z * rhs.z)
+    }
+}
+
+impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'a Vec4<T>> for &'b Mat4<T> {
+    type Output = Vec4<T>;
+
+    #[inline]
+    fn mul(self, rhs: &Vec4<T>) -> Vec4<T> {
+        Vec4::new( self.x.x * rhs.x + self.y.x * rhs.y + self.z.x * rhs.z + self.p.x * rhs.w,
+                   self.x.y * rhs.x + self.y.y * rhs.y + self.z.y * rhs.z + self.p.y * rhs.w,
+                   self.x.z * rhs.x + self.y.z * rhs.y + self.z.z * rhs.z + self.p.z * rhs.w,
+                   self.x.w * rhs.x + self.y.w * rhs.y + self.z.w * rhs.z + self.p.w * rhs.w)
+    }
+}
+
+// -- multiply vector by matrix -----------------------------------------------
+
+impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'a Mat2<T>> for &'a Vec2<T> {
+    type Output = Vec2<T>;
+
+    #[inline]
+    fn mul(self, rhs: &Mat2<T>) -> Vec2<T> {
+        Vec2::new( self.x * rhs.x.x + self.y * rhs.x.y,
+                   self.x * rhs.y.x + self.y * rhs.y.y )
+    }
+}
+
+impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'a Mat3<T>> for &'a Vec3<T> {
+    type Output = Vec3<T>;
+
+    #[inline]
+    fn mul(self, rhs: &Mat3<T>) -> Vec3<T> {
+        Vec3::new( self.x * rhs.x.x + self.y * rhs.x.y + self.z * rhs.x.z,
+                   self.x * rhs.y.x + self.y * rhs.y.y + self.z * rhs.y.z,
+                   self.x * rhs.z.x + self.y * rhs.z.y + self.z * rhs.z.z)
+    }
+}
+
+impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'a Mat4<T>> for &'a Vec4<T> {
+    type Output = Vec4<T>;
+
+    #[inline]
+    fn mul(self, rhs: &Mat4<T>) -> Vec4<T> {
+        Vec4::new( self.x * rhs.x.x + self.y * rhs.x.y + self.z * rhs.x.z + self.w * rhs.x.w,
+                   self.x * rhs.y.x + self.y * rhs.y.y + self.z * rhs.y.z + self.w * rhs.y.w,
+                   self.x * rhs.z.x + self.y * rhs.z.y + self.z * rhs.z.z + self.w * rhs.z.w,
+                   self.x * rhs.p.x + self.y * rhs.p.y + self.z * rhs.p.z + self.w * rhs.p.w)
+    }
+}
+
+// -- characteristic tests ----------------------------------------------------
+
+
 impl<T: Zero + PartialEq> Mat2<T> {
     #[inline]
     pub fn is_diagonal(&self) -> bool {
-        self.a.y == T::zero() && self.b.x == T::zero()
+        self.x.y == T::zero() && self.y.x == T::zero()
     }
 }
 
 impl<T: Zero + PartialEq> Mat3<T> {
     #[inline]
     pub fn is_diagonal(&self) -> bool {
-        self.a.y == T::zero() && self.a.z == T::zero() &&
-            self.b.x == T::zero() && self.b.z == T::zero() &&
-            self.c.x == T::zero() && self.c.y == T::zero()
+        self.x.y == T::zero() && self.x.z == T::zero() &&
+            self.y.x == T::zero() && self.y.z == T::zero() &&
+            self.z.x == T::zero() && self.z.y == T::zero()
     }
 }
 
 impl<T: Zero + PartialEq> Mat4<T> {
     #[inline]
     pub fn is_diagonal(&self) -> bool {
-        self.a.y == T::zero() && self.a.z == T::zero() && self.a.w == T::zero() &&
-            self.b.x == T::zero() && self.b.z == T::zero() && self.b.w == T::zero() &&
-            self.c.x == T::zero() && self.c.y == T::zero() && self.c.w == T::zero() &&
-            self.d.x == T::zero() && self.d.y == T::zero() && self.d.z == T::zero()
+        self.x.y == T::zero() && self.x.z == T::zero() && self.x.w == T::zero() &&
+            self.y.x == T::zero() && self.y.z == T::zero() && self.y.w == T::zero() &&
+            self.z.x == T::zero() && self.z.y == T::zero() && self.p.w == T::zero() &&
+            self.p.x == T::zero() && self.p.y == T::zero() && self.z.z == T::zero()
     }
 }
 
 impl<T: PartialEq> Mat2<T> {
     pub fn is_symmetric(&self) -> bool {
-        self.a.y == self.b.x
+        self.x.y == self.y.x
     }
 }
 
 
 impl<T: PartialEq> Mat3<T> {
     pub fn is_symmetric(&self) -> bool {
-        self.a.y == self.b.x &&
-            self.a.z == self.c.x &&
-            self.b.z == self.c.y
+        self.x.y == self.y.x &&
+            self.x.z == self.z.x &&
+            self.y.z == self.z.y
     }
 }
 
 impl<T: PartialEq> Mat4<T> {
     pub fn is_symmetric(&self) -> bool {
-        self.a.y == self.b.x &&
-            self.a.z == self.c.x &&
-            self.a.w == self.d.x &&
-            self.b.z == self.c.y &&
-            self.b.w == self.d.y &&
-            self.c.w == self.d.z
+        self.x.y == self.y.x &&
+            self.x.z == self.z.x &&
+            self.x.w == self.p.x &&
+            self.y.z == self.z.y &&
+            self.y.w == self.p.y &&
+            self.z.w == self.p.z
     }
 }
 
 impl<T: Copy + PartialEq + Neg<Output=T>> Mat2<T> {
     pub fn is_skew_symmetric(&self) -> bool {
-        self.a.y == -self.b.x
+        self.x.y == -self.y.x
     }
 }
 
 impl<T: Copy + PartialEq + Neg<Output=T>> Mat3<T> {
     pub fn is_skew_symmetric(&self) -> bool {
-        self.a.y == -self.b.x &&
-            self.a.z == -self.c.x &&
-            self.b.z == -self.c.y
+        self.x.y == -self.y.x &&
+            self.x.z == -self.z.x &&
+            self.y.z == -self.z.y
     }
 }
 
 impl<T: Copy + PartialEq + Neg<Output=T>> Mat4<T> {
     pub fn is_skew_symmetric(&self) -> bool {
-        self.a.y == -self.b.x &&
-            self.a.z == -self.c.x &&
-            self.a.w == -self.d.x &&
-            self.b.z == -self.c.y &&
-            self.b.w == -self.d.y &&
-            self.c.w == -self.d.z
+        self.x.y == -self.y.x &&
+            self.x.z == -self.z.x &&
+            self.x.w == -self.p.x &&
+            self.y.z == -self.z.y &&
+            self.y.w == -self.p.y &&
+            self.z.w == -self.p.z
     }
 }
 
 
-impl<T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<Vec2<T>> for Mat2<T> {
-    type Output = Vec2<T>;
+#[cfg(test)]
+mod tests {
+    use super::{Mat2, Mat3, Mat4};
+    use super::super::vector::{Vec2, Vec3, Vec4};
 
-    #[inline]
-    fn mul(self, rhs: Vec2<T>) -> Vec2<T> {
-        Vec2::new(
-            self.a.x * rhs.x
-                + self.a.y * rhs.y,
-            self.b.x * rhs.x
-                + self.b.y * rhs.y
-        )
+    #[test]
+    fn test_index() {
+        let m: Mat2<u32> = Mat2::new(1, 2, 3, 4);
+        assert_eq!(m[(0,0)], 1);
+        assert_eq!(m[(0,1)], 2);
+        assert_eq!(m[(1,0)], 3);
+        assert_eq!(m[(1,1)], 4);
     }
-}
 
-impl<T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<Vec3<T>> for Mat3<T> {
-    type Output = Vec3<T>;
+    #[test]
+    fn test_transpose() {
+        let mut m: Mat2<u32> = Mat2::new(1, 2,
+                                         3, 4);
+        m.transpose();
+        assert_eq!(m, Mat2::new(1, 3,
+                                2, 4));
 
-    #[inline]
-    fn mul(self, rhs: Vec3<T>) -> Vec3<T> {
-        Vec3::new(
-            self.a.x * rhs.x
-                + self.a.y * rhs.y
-                + self.a.z * rhs.z,
-            self.b.x * rhs.x
-                + self.b.y * rhs.y
-                + self.b.z * rhs.z,
-            self.c.x * rhs.x
-                + self.c.y * rhs.y
-                + self.c.z * rhs.z,
-        )
+        let mut m: Mat3<u32> = Mat3::new(1, 2, 3,
+                                         4, 5, 6,
+                                         7, 8, 9);
+        m.transpose();
+        assert_eq!(m, Mat3::new(1, 4, 7,
+                                2, 5, 8,
+                                3, 6, 9));
+
+        let mut m: Mat4<u32> = Mat4::new(1, 2, 3, 4,
+                                         5, 6, 7, 8,
+                                         9, 10, 11, 12,
+                                         13, 14, 15, 16);
+        m.transpose();
+        assert_eq!(m, Mat4::new(1, 5, 9, 13,
+                                2, 6, 10, 14,
+                                3, 7, 11, 15,
+                                4, 8, 12, 16));
     }
-}
 
-impl<T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<Vec4<T>> for Mat4<T> {
-    type Output = Vec4<T>;
+    #[test]
+    fn test_mul_mat() {
+        let left: Mat2<u32> = Mat2::new(1, 2, 3, 4);
+        let right: Mat2<u32> = Mat2::new(6, 7, 8, 9);
+        let product = &left * &right;
+        assert_eq!(product, Mat2::new(22, 25,
+                                      50, 57));
 
-    #[inline]
-    fn mul(self, rhs: Vec4<T>) -> Vec4<T> {
-        Vec4::new(
-            self.a.x * rhs.x
-                + self.a.y * rhs.y
-                + self.a.z * rhs.z
-                + self.a.w * rhs.w,
-            self.b.x * rhs.x
-                + self.b.y * rhs.y
-                + self.b.z * rhs.z
-                + self.b.w * rhs.w,
-            self.c.x * rhs.x
-                + self.c.y * rhs.y
-                + self.c.z * rhs.z
-                + self.c.w * rhs.w,
-            self.d.x * rhs.x
-                + self.d.y * rhs.y
-                + self.d.z * rhs.z
-                + self.d.w * rhs.w,
-        )
+        let left: Mat3<u32> = Mat3::new(1, 2, 3,
+                                        4, 5, 6,
+                                        7, 8, 9);
+        let right: Mat3<u32> = Mat3::new(10, 11, 12,
+                                         13, 14, 15,
+                                         16, 17, 18);
+        let product = &left * &right;
+        assert_eq!(product[(0,0)], 84);
+        assert_eq!(product[(0,1)], 90);
+        assert_eq!(product[(0,2)], 96);
+        assert_eq!(product[(1,0)], 201);
+        assert_eq!(product[(1,1)], 216);
+        assert_eq!(product[(1,2)], 231);
+        assert_eq!(product[(2,0)], 318);
+        assert_eq!(product[(2,1)], 342);
+        assert_eq!(product[(2,2)], 366);
+
+        let left: Mat4<u32> = Mat4::new(1, 2, 3, 4,
+                                        4, 3, 2, 1,
+                                        5, 6, 2, 4,
+                                        7, 1, 0, 3);
+        let right: Mat4<u32> = Mat4::new(1, 6, 5, 2,
+                                         3, 3, 3, 3,
+                                         7, 8, 4, 1,
+                                         9, 2, 0, 5);
+        let product = &left * &right;
+        assert_eq!(product[(0,0)], 64);
+        assert_eq!(product[(0,1)], 44);
+        assert_eq!(product[(0,2)], 23);
+        assert_eq!(product[(0,3)], 31);
+        assert_eq!(product[(1,0)], 36);
+        assert_eq!(product[(1,1)], 51);
+        assert_eq!(product[(1,2)], 37);
+        assert_eq!(product[(1,3)], 24);
+        assert_eq!(product[(2,0)], 73);
+        assert_eq!(product[(2,1)], 72);
+        assert_eq!(product[(2,2)], 51);
+        assert_eq!(product[(2,3)], 50);
+        assert_eq!(product[(3,0)], 37);
+        assert_eq!(product[(3,1)], 51);
+        assert_eq!(product[(3,2)], 38);
+        assert_eq!(product[(3,3)], 32);
     }
-}
 
-impl<T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<Mat2<T>> for Vec2<T> {
-    type Output = Vec2<T>;
+    #[test]
+    fn test_mul_vec() {
+        let left: Mat2<u32> = Mat2::new(1, 2,
+                                        3, 4);
+        let right: Vec2<u32> = Vec2::new(10, 20);
+        let product = &left * &right;
+        assert_eq!(product[0], 50);
+        assert_eq!(product[1], 110);
+        let product = &right * &left;
+        assert_eq!(product[0], 70);
+        assert_eq!(product[1], 100);
 
-    #[inline]
-    fn mul(self, rhs: Mat2<T>) -> Vec2<T> {
-        Vec2::new(
-            self.x * rhs.a.x
-                + self.y * rhs.b.x,
-            self.x * rhs.a.y
-                + self.y * rhs.b.y
-        )
-    }
-}
+        let left: Mat3<u32> = Mat3::new(1, 2, 3,
+                                        4, 5, 6,
+                                        7, 8, 9);
+        let right: Vec3<u32> = Vec3::new(10, 20, 30);
+        let product = &left * &right;
+        assert_eq!(product[0], 140);
+        assert_eq!(product[1], 320);
+        assert_eq!(product[2], 500);
+        let product = &right * &left;
+        assert_eq!(product[0], 300);
+        assert_eq!(product[1], 360);
+        assert_eq!(product[2], 420);
 
-impl<T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<Mat3<T>> for Vec3<T> {
-    type Output = Vec3<T>;
-
-    #[inline]
-    fn mul(self, rhs: Mat3<T>) -> Vec3<T> {
-        Vec3::new(
-            self.x * rhs.a.x
-                + self.y * rhs.b.x
-                + self.z * rhs.c.x,
-            self.x * rhs.a.y
-                + self.y * rhs.b.y
-                + self.z * rhs.c.y,
-            self.x * rhs.a.z
-                + self.y * rhs.b.z
-                + self.z * rhs.c.z
-        )
-    }
-}
-
-impl<T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<Mat4<T>> for Vec4<T> {
-    type Output = Vec4<T>;
-
-    #[inline]
-    fn mul(self, rhs: Mat4<T>) -> Vec4<T> {
-        Vec4::new(
-            self.x * rhs.a.x
-                + self.y * rhs.b.x
-                + self.z * rhs.c.x
-                + self.w * rhs.d.x,
-            self.x * rhs.a.y
-                + self.y * rhs.b.y
-                + self.z * rhs.c.y
-                + self.w * rhs.d.y,
-            self.x * rhs.a.z
-                + self.y * rhs.b.z
-                + self.z * rhs.c.z
-                + self.w * rhs.d.z,
-            self.x * rhs.a.w
-                + self.y * rhs.b.w
-                + self.z * rhs.c.w
-                + self.w * rhs.d.w
-        )
+        let left: Mat4<u32> = Mat4::new(1, 2, 3, 4,
+                                        5, 6, 7, 8,
+                                        9, 10, 11, 12,
+                                        13, 14, 15, 16);
+        let right: Vec4<u32> = Vec4::new(1, 2, 3, 4);
+        let product = &left * &right;
+        assert_eq!(product[0], 30);
+        assert_eq!(product[1], 70);
+        assert_eq!(product[2], 110);
+        assert_eq!(product[3], 150);
+        let product = &right * &left;
+        assert_eq!(product[0], 90);
+        assert_eq!(product[1], 100);
+        assert_eq!(product[2], 110);
+        assert_eq!(product[3], 120);
     }
 }
