@@ -1,5 +1,6 @@
 
 use num_traits::identities::{Zero, One};
+use num_traits::float::Float;
 use std::ops::{Index, IndexMut, Mul, Add, Neg, Div, Sub};
 use std::default::Default;
 use super::vector::{Vec2, Vec3, Vec4, vec2, vec3, vec4};
@@ -555,7 +556,6 @@ impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'a Mat4<T>> for &
 
 // -- characteristic tests ----------------------------------------------------
 
-
 impl<T: Zero + PartialEq> Mat2<T> {
     #[inline]
     pub fn is_diagonal(&self) -> bool {
@@ -636,6 +636,86 @@ impl<T: Copy + PartialEq + Neg<Output=T>> Mat4<T> {
             self.y.z == -self.z.y &&
             self.y.w == -self.p.y &&
             self.z.w == -self.p.z
+    }
+}
+
+// -- rotation matrices -------------------------------------------------------
+
+impl<T: Float> Mat2<T> {
+    #[inline]
+    pub fn from_angle(theta: T) -> Mat2<T> {
+        let (s, c) = theta.sin_cos();
+        Mat2 {
+            x: vec2(c, s),
+            y: vec2(-s, c),
+        }
+    }
+}
+
+impl<T: Float + One + Zero> Mat3<T> {
+    #[inline]
+    pub fn from_angle_x(theta: T) -> Mat3<T> {
+        let (s, c) = theta.sin_cos();
+        Mat3 {
+            x: vec3(T::one(), T::zero(), T::zero()),
+            y: vec3(T::zero(), c, s),
+            z: vec3(T::zero(), -s, c),
+        }
+    }
+
+    #[inline]
+    pub fn from_angle_y(theta: T) -> Mat3<T> {
+        let (s, c) = theta.sin_cos();
+        Mat3 {
+            x: vec3(c, T::zero(), -s),
+            y: vec3(T::zero(), T::one(), T::zero()),
+            z: vec3(s, T::zero(),  c),
+        }
+    }
+
+    #[inline]
+    pub fn from_angle_z(theta: T) -> Mat3<T> {
+        let (s, c) = theta.sin_cos();
+        Mat3 {
+            x: vec3(-c, s, T::zero()),
+            y: vec3(-s, c, T::zero()),
+            z: vec3(T::zero(), T::zero(), T::one()),
+        }
+    }
+}
+
+impl<T: Float + One + Zero> Mat4<T> {
+    #[inline]
+    pub fn from_angle_x(theta: T) -> Mat4<T> {
+        let (s, c) = theta.sin_cos();
+        Mat4 {
+            x: vec4(T::one(), T::zero(), T::zero(), T::zero()),
+            y: vec4(T::zero(), c, s, T::zero()),
+            z: vec4(T::zero(), -s, c, T::zero()),
+            p: vec4(T::zero(), T::zero(), T::zero(), T::one()),
+        }
+    }
+
+    #[inline]
+    pub fn from_angle_y(theta: T) -> Mat4<T> {
+        let (s, c) = theta.sin_cos();
+        Mat4 {
+            x: vec4(c, T::zero(), -s, T::zero()),
+            y: vec4(T::zero(), T::one(), T::zero(), T::zero()),
+            z: vec4(s, T::zero(),  c, T::zero()),
+            p: vec4(T::zero(), T::zero(), T::zero(), T::one()),
+        }
+    }
+
+    #[inline]
+    pub fn from_angle_z(theta: T) -> Mat4<T> {
+        let (s, c) = theta.sin_cos();
+        Mat4 {
+            x: vec4(-c, s, T::zero(), T::zero()),
+            y: vec4(-s, c, T::zero(), T::zero()),
+            z: vec4(T::zero(), T::zero(), T::one(), T::zero()),
+            p: vec4(T::zero(), T::zero(), T::zero(), T::one()),
+        }
     }
 }
 
