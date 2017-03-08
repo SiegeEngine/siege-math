@@ -711,8 +711,8 @@ impl<T: Float + One + Zero> Mat4<T> {
     pub fn from_angle_z(theta: T) -> Mat4<T> {
         let (s, c) = theta.sin_cos();
         Mat4 {
-            x: vec4(-c, s, T::zero(), T::zero()),
-            y: vec4(-s, c, T::zero(), T::zero()),
+            x: vec4(c, -s, T::zero(), T::zero()),
+            y: vec4(s, c, T::zero(), T::zero()),
             z: vec4(T::zero(), T::zero(), T::one(), T::zero()),
             p: vec4(T::zero(), T::zero(), T::zero(), T::one()),
         }
