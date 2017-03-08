@@ -1,6 +1,6 @@
 [package]
 name = "siege-math"
-version = "0.1.0-unstable10"
+version = "0.1.0-unstable11"
 authors = ["Mike Dilger <mike@optcomp.nz>"]
 
 [dependencies]
