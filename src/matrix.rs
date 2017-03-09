@@ -684,6 +684,42 @@ impl<T: Float + One + Zero> Mat3<T> {
     }
 }
 
+impl Mat3<f32> {
+    // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
+    //  #Rotation_matrix_from_axis_and_angle
+    pub fn rotate_axis_angle(mut axis: Vec3<f32>, theta: f32) -> Mat3<f32> {
+        axis.normalize();
+        let x = &axis.x;
+        let y = &axis.y;
+        let z = &axis.z;
+        let (s, c) = theta.sin_cos();
+        let ic = 1.0 - c;
+        Mat3 { // looks transposed due to constructor layout
+            x: vec3( c + x*x*ic  ,   y*x*ic + z*s,  z*x*ic - y*s ),
+            y: vec3( x*y*ic - z*s,   c + y*y*ic  ,  z*y*ic + x*s ),
+            z: vec3( x*z*ic + y*s,   y*z*ic - x*s,  c + z*z*ic   ),
+        }
+    }
+}
+
+impl Mat3<f64> {
+    // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
+    //  #Rotation_matrix_from_axis_and_angle
+    pub fn rotate_axis_angle(mut axis: Vec3<f64>, theta: f64) -> Mat3<f64> {
+        axis.normalize();
+        let x = &axis.x;
+        let y = &axis.y;
+        let z = &axis.z;
+        let (s, c) = theta.sin_cos();
+        let ic = 1.0 - c;
+        Mat3 { // looks transposed due to constructor layout
+            x: vec3( c + x*x*ic  ,   y*x*ic + z*s,  z*x*ic - y*s ),
+            y: vec3( x*y*ic - z*s,   c + y*y*ic  ,  z*y*ic + x*s ),
+            z: vec3( x*z*ic + y*s,   y*z*ic - x*s,  c + z*z*ic   ),
+        }
+    }
+}
+
 impl<T: Float + One + Zero> Mat4<T> {
     #[inline]
     pub fn from_angle_x(theta: T) -> Mat4<T> {
@@ -715,6 +751,44 @@ impl<T: Float + One + Zero> Mat4<T> {
             y: vec4(s, c, T::zero(), T::zero()),
             z: vec4(T::zero(), T::zero(), T::one(), T::zero()),
             p: vec4(T::zero(), T::zero(), T::zero(), T::one()),
+        }
+    }
+}
+
+impl Mat4<f32> {
+    // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
+    //  #Rotation_matrix_from_axis_and_angle
+    pub fn rotate_axis_angle(mut axis: Vec3<f32>, theta: f32) -> Mat4<f32> {
+        axis.normalize();
+        let x = &axis.x;
+        let y = &axis.y;
+        let z = &axis.z;
+        let (s, c) = theta.sin_cos();
+        let ic = 1.0 - c;
+        Mat4 { // looks transposed due to constructor layout
+            x: vec4( c + x*x*ic  ,   y*x*ic + z*s,  z*x*ic - y*s , 0.0),
+            y: vec4( x*y*ic - z*s,   c + y*y*ic  ,  z*y*ic + x*s , 0.0),
+            z: vec4( x*z*ic + y*s,   y*z*ic - x*s,  c + z*z*ic   , 0.0),
+            p: vec4( 0.0   ,   0.0   ,  0.0    , 1.0 ),
+        }
+    }
+}
+
+impl Mat4<f64> {
+    // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
+    //  #Rotation_matrix_from_axis_and_angle
+    pub fn rotate_axis_angle(mut axis: Vec3<f64>, theta: f64) -> Mat4<f64> {
+        axis.normalize();
+        let x = &axis.x;
+        let y = &axis.y;
+        let z = &axis.z;
+        let (s, c) = theta.sin_cos();
+        let ic = 1.0 - c;
+        Mat4 { // looks transposed due to constructor layout
+            x: vec4( c + x*x*ic  ,   y*x*ic + z*s,  z*x*ic - y*s , 0.0),
+            y: vec4( x*y*ic - z*s,   c + y*y*ic  ,  z*y*ic + x*s , 0.0),
+            z: vec4( x*z*ic + y*s,   y*z*ic - x*s,  c + z*z*ic   , 0.0),
+            p: vec4( 0.0   ,   0.0   ,  0.0    , 1.0 ),
         }
     }
 }
