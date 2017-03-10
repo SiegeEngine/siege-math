@@ -957,4 +957,29 @@ mod tests {
                                     3.0,  0.25, -1.25, -0.5,
                                     -3.0, 0.0,   1.0,   1.0 ));
     }
+
+    #[test]
+    fn test_axis_angle() {
+        let axis = Vec3::new(1.0, 0.0, 0.0);
+        let angle = ::std::f32::consts::FRAC_PI_4;
+
+        let start: Mat4<f32> = Mat4::new(
+            1.0, 0.0, 0.0, 5.0,
+            0.0, 1.0, 0.0, 5.0,
+            0.0, 0.0, 1.0, 5.0,
+            0.0, 0.0, 0.0, 1.0 );
+
+        let rot = Mat4::<f32>::rotate_axis_angle(axis, angle);
+
+        let end = &rot * &start;
+
+        let (s, c) = angle.sin_cos();
+        // This equality comparison works even with floating point inaccuracies.
+        // But ideally we need ULPS comparison functions for vectors and matrices.
+        assert_eq!(end, Mat4::new(
+            1.0, 0.0, 0.0, 5.0,
+            0.0, c,   -s,  0.0,
+            0.0, s,   c,   c*10.0,
+            0.0, 0.0, 0.0, 1.0));
+    }
 }
