@@ -132,7 +132,7 @@ impl<T> Mat2<T> {
     pub fn new(r0c0: T, r0c1: T,
                r1c0: T, r1c1: T) -> Mat2<T>
     {
-        Mat2 {
+        Mat2 { // looks transposed because stored column-major
             x: vec2(r0c0, r1c0),
             y: vec2(r0c1, r1c1),
         }
@@ -151,7 +151,7 @@ impl<T> Mat3<T> {
                r1c0: T, r1c1: T, r1c2: T,
                r2c0: T, r2c1: T, r2c2: T) -> Mat3<T>
     {
-        Mat3 {
+        Mat3 { // looks transposed because stored column-major
             x: vec3(r0c0, r1c0, r2c0),
             y: vec3(r0c1, r1c1, r2c1),
             z: vec3(r0c2, r1c2, r2c2),
@@ -172,7 +172,7 @@ impl<T> Mat4<T> {
                r2c0: T, r2c1: T, r2c2: T, r2c3: T,
                r3c0: T, r3c1: T, r3c2: T, r3c3: T) -> Mat4<T>
     {
-        Mat4 {
+        Mat4 { // looks transposed because stored column-major
             x: vec4(r0c0, r1c0, r2c0, r3c0),
             y: vec4(r0c1, r1c1, r2c1, r3c1),
             z: vec4(r0c2, r1c2, r2c2, r3c2),
@@ -192,33 +192,27 @@ impl<T> Mat4<T> {
 impl<T: Default> Default for Mat2<T> {
     #[inline]
     fn default() -> Mat2<T> {
-        Mat2 {
-            x: vec2(T::default(), T::default()),
-            y: vec2(T::default(), T::default()),
-        }
+        Mat2::new( T::default(), T::default(),
+                   T::default(), T::default() )
     }
 }
 
 impl<T: Default> Default for Mat3<T> {
     #[inline]
     fn default() -> Mat3<T> {
-        Mat3 {
-            x: vec3(T::default(), T::default(), T::default()),
-            y: vec3(T::default(), T::default(), T::default()),
-            z: vec3(T::default(), T::default(), T::default()),
-        }
+        Mat3::new( T::default(), T::default(), T::default(),
+                   T::default(), T::default(), T::default(),
+                   T::default(), T::default(), T::default() )
     }
 }
 
 impl<T: Default> Default for Mat4<T> {
     #[inline]
     fn default() -> Mat4<T> {
-        Mat4 {
-            x: vec4(T::default(), T::default(), T::default(), T::default()),
-            y: vec4(T::default(), T::default(), T::default(), T::default()),
-            z: vec4(T::default(), T::default(), T::default(), T::default()),
-            p: vec4(T::default(), T::default(), T::default(), T::default()),
-        }
+        Mat4::new( T::default(), T::default(), T::default(), T::default(),
+                   T::default(), T::default(), T::default(), T::default(),
+                   T::default(), T::default(), T::default(), T::default(),
+                   T::default(), T::default(), T::default(), T::default() )
     }
 }
 
@@ -228,10 +222,8 @@ impl<T: Zero> Mat2<T> {
     #[inline]
     pub fn zero() -> Mat2<T>
     {
-        Mat2 {
-            x: vec2(T::zero(), T::zero()),
-            y: vec2(T::zero(), T::zero()),
-        }
+        Mat2::new( T::zero(), T::zero(),
+                   T::zero(), T::zero() )
     }
 }
 
@@ -239,11 +231,9 @@ impl<T: Zero> Mat3<T> {
     #[inline]
     pub fn zero() -> Mat3<T>
     {
-        Mat3 {
-            x: vec3(T::zero(), T::zero(), T::zero()),
-            y: vec3(T::zero(), T::zero(), T::zero()),
-            z: vec3(T::zero(), T::zero(), T::zero()),
-        }
+        Mat3::new( T::zero(), T::zero(), T::zero(),
+                   T::zero(), T::zero(), T::zero(),
+                   T::zero(), T::zero(), T::zero() )
     }
 }
 
@@ -251,12 +241,10 @@ impl<T: Zero> Mat4<T> {
     #[inline]
     pub fn zero() -> Mat4<T>
     {
-        Mat4 {
-            x: vec4(T::zero(), T::zero(), T::zero(), T::zero()),
-            y: vec4(T::zero(), T::zero(), T::zero(), T::zero()),
-            z: vec4(T::zero(), T::zero(), T::zero(), T::zero()),
-            p: vec4(T::zero(), T::zero(), T::zero(), T::zero()),
-        }
+        Mat4::new( T::zero(), T::zero(), T::zero(), T::zero(),
+                   T::zero(), T::zero(), T::zero(), T::zero(),
+                   T::zero(), T::zero(), T::zero(), T::zero(),
+                   T::zero(), T::zero(), T::zero(), T::zero() )
     }
 }
 
@@ -266,10 +254,8 @@ impl<T: Zero + One> Mat2<T> {
     #[inline]
     pub fn identity() -> Mat2<T>
     {
-        Mat2 {
-            x: vec2(T::one(), T::zero()),
-            y: vec2(T::zero(), T::one()),
-        }
+        Mat2::new( T::one(), T::zero(),
+                   T::zero(), T::one() )
     }
 }
 
@@ -277,11 +263,9 @@ impl<T: Zero + One> Mat3<T> {
     #[inline]
     pub fn identity() -> Mat3<T>
     {
-        Mat3 {
-            x: vec3(T::one(), T::zero(), T::zero()),
-            y: vec3(T::zero(), T::one(), T::zero()),
-            z: vec3(T::zero(), T::zero(), T::one()),
-        }
+        Mat3::new( T::one(), T::zero(), T::zero(),
+                   T::zero(), T::one(), T::zero(),
+                   T::zero(), T::zero(), T::one() )
     }
 }
 
@@ -289,12 +273,10 @@ impl<T: Zero + One> Mat4<T> {
     #[inline]
     pub fn identity() -> Mat4<T>
     {
-        Mat4 {
-            x: vec4(T::one(), T::zero(), T::zero(), T::zero()),
-            y: vec4(T::zero(), T::one(), T::zero(), T::zero()),
-            z: vec4(T::zero(), T::zero(), T::one(), T::zero()),
-            p: vec4(T::zero(), T::zero(), T::zero(), T::one()),
-        }
+        Mat4::new( T::one(), T::zero(), T::zero(), T::zero(),
+                   T::zero(), T::one(), T::zero(), T::zero(),
+                   T::zero(), T::zero(), T::one(), T::zero(),
+                   T::zero(), T::zero(), T::zero(), T::one() )
     }
 }
 
@@ -341,10 +323,8 @@ impl<T: Copy + One + Zero + PartialEq
     pub fn inverse(&self) -> Option<Mat2<T>> {
         let d = self.determinant();
         if d == T::zero() { return None; }
-        Some(Mat2 {
-            x: vec2( self.y.y/d ,-self.x.y/d),
-            y: vec2(-self.y.x/d , self.x.x/d),
-        })
+        Some(Mat2::new( self.y.y/d, -self.y.x/d,
+                        -self.x.y/d, self.x.x/d ))
     }
 }
 
@@ -374,25 +354,18 @@ impl<T: Copy + One + Zero + PartialEq
      + Neg<Output=T> + Div<Output=T> + Sub<Output=T> + Mul<Output=T>> Mat4<T> {
     #[inline]
     pub fn determinant(&self) -> T {
-        self.x.x * Mat3 {
-            x: vec3(self.y.y, self.y.z, self.y.w),
-            y: vec3(self.z.y, self.z.z, self.z.w),
-            z: vec3(self.p.y, self.p.z, self.p.w) }.determinant()
-
-            - self.y.x * Mat3 {
-                x: vec3(self.x.y, self.x.z, self.x.w),
-                y: vec3(self.z.y, self.z.z, self.z.w),
-                z: vec3(self.p.y, self.p.z, self.p.w) }.determinant()
-
-            + self.z.x * Mat3 {
-                x: vec3(self.x.y, self.x.z, self.x.w),
-                y: vec3(self.y.y, self.y.z, self.y.w),
-                z: vec3(self.p.y, self.p.z, self.p.w) }.determinant()
-
-            - self.p.x * Mat3 {
-                x: vec3(self.x.y, self.x.z, self.x.w),
-                y: vec3(self.y.y, self.y.z, self.y.w),
-                z: vec3(self.z.y, self.z.z, self.z.w) }.determinant()
+        self.x.x * Mat3::new( self.y.y, self.z.y, self.p.y,
+                              self.y.z, self.z.z, self.p.z,
+                              self.y.w, self.z.w, self.p.w ).determinant()
+            - self.y.x * Mat3::new( self.x.y, self.z.y, self.p.y,
+                                    self.x.z, self.z.z, self.p.z,
+                                    self.x.w, self.z.w, self.p.w ).determinant()
+            + self.z.x * Mat3::new( self.x.y, self.y.y, self.p.y,
+                                    self.x.z, self.y.z, self.p.z,
+                                    self.x.w, self.y.w, self.p.w ).determinant()
+            - self.p.x * Mat3::new( self.x.y, self.y.y, self.z.y,
+                                    self.x.z, self.y.z, self.z.z,
+                                    self.x.w, self.y.w, self.z.w ).determinant()
     }
 
     #[inline]
@@ -414,12 +387,10 @@ impl<T: Copy + One + Zero + PartialEq
             mat.determinant() * sign *id
         };
 
-        Some(Mat4 {
-            x: vec4(cf(0,0), cf(0,1), cf(0,2), cf(0,3)),
-            y: vec4(cf(1,0), cf(1,1), cf(1,2), cf(1,3)),
-            z: vec4(cf(2,0), cf(2,1), cf(2,2), cf(2,3)),
-            p: vec4(cf(3,0), cf(3,1), cf(3,2), cf(3,3)),
-        })
+        Some(Mat4::new( cf(0,0), cf(1,0), cf(2,0), cf(3,0),
+                        cf(0,1), cf(1,1), cf(2,1), cf(3,1),
+                        cf(0,2), cf(1,2), cf(2,2), cf(3,2),
+                        cf(0,3), cf(1,3), cf(2,3), cf(3,3) ))
     }
 }
 
@@ -430,12 +401,9 @@ impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'b Mat2<T>> for &
 
     #[inline]
     fn mul(self, rhs: &Mat2<T>) -> Mat2<T> {
-        Mat2 {
-            x: vec2( self.x.x * rhs.x.x + self.y.x * rhs.x.y,
-                     self.x.y * rhs.x.x + self.y.y * rhs.x.y),
-            y: vec2( self.x.x * rhs.y.x + self.y.x * rhs.y.y,
-                     self.x.y * rhs.y.x + self.y.y * rhs.y.y),
-        }
+        Mat2::new(
+            self.x.x * rhs.x.x + self.y.x * rhs.x.y,  self.x.x * rhs.y.x + self.y.x * rhs.y.y,
+            self.x.y * rhs.x.x + self.y.y * rhs.x.y,  self.x.y * rhs.y.x + self.y.y * rhs.y.y)
     }
 }
 
@@ -444,17 +412,18 @@ impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'b Mat3<T>> for &
 
     #[inline]
     fn mul(self, rhs: &Mat3<T>) -> Mat3<T> {
-        Mat3 {
-            x: vec3( self.x.x * rhs.x.x + self.y.x * rhs.x.y + self.z.x * rhs.x.z,
-                     self.x.y * rhs.x.x + self.y.y * rhs.x.y + self.z.y * rhs.x.z,
-                     self.x.z * rhs.x.x + self.y.z * rhs.x.y + self.z.z * rhs.x.z),
-            y: vec3( self.x.x * rhs.y.x + self.y.x * rhs.y.y + self.z.x * rhs.y.z,
-                     self.x.y * rhs.y.x + self.y.y * rhs.y.y + self.z.y * rhs.y.z,
-                     self.x.z * rhs.y.x + self.y.z * rhs.y.y + self.z.z * rhs.y.z),
-            z: vec3( self.x.x * rhs.z.x + self.y.x * rhs.z.y + self.z.x * rhs.z.z,
-                     self.x.y * rhs.z.x + self.y.y * rhs.z.y + self.z.y * rhs.z.z,
-                     self.x.z * rhs.z.x + self.y.z * rhs.z.y + self.z.z * rhs.z.z),
-        }
+        Mat3::new(
+            self.x.x * rhs.x.x + self.y.x * rhs.x.y + self.z.x * rhs.x.z,
+            self.x.x * rhs.y.x + self.y.x * rhs.y.y + self.z.x * rhs.y.z,
+            self.x.x * rhs.z.x + self.y.x * rhs.z.y + self.z.x * rhs.z.z,
+
+            self.x.y * rhs.x.x + self.y.y * rhs.x.y + self.z.y * rhs.x.z,
+            self.x.y * rhs.y.x + self.y.y * rhs.y.y + self.z.y * rhs.y.z,
+            self.x.y * rhs.z.x + self.y.y * rhs.z.y + self.z.y * rhs.z.z,
+
+            self.x.z * rhs.x.x + self.y.z * rhs.x.y + self.z.z * rhs.x.z,
+            self.x.z * rhs.y.x + self.y.z * rhs.y.y + self.z.z * rhs.y.z,
+            self.x.z * rhs.z.x + self.y.z * rhs.z.y + self.z.z * rhs.z.z)
     }
 }
 
@@ -463,24 +432,26 @@ impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'b Mat4<T>> for &
 
     #[inline]
     fn mul(self, rhs: &Mat4<T>) -> Mat4<T> {
-        Mat4 {
-            x: vec4( self.x.x * rhs.x.x + self.y.x * rhs.x.y + self.z.x * rhs.x.z + self.p.x * rhs.x.w,
-                     self.x.y * rhs.x.x + self.y.y * rhs.x.y + self.z.y * rhs.x.z + self.p.y * rhs.x.w,
-                     self.x.z * rhs.x.x + self.y.z * rhs.x.y + self.z.z * rhs.x.z + self.p.z * rhs.x.w,
-                     self.x.w * rhs.x.x + self.y.w * rhs.x.y + self.z.w * rhs.x.z + self.p.w * rhs.x.w),
-            y: vec4( self.x.x * rhs.y.x + self.y.x * rhs.y.y + self.z.x * rhs.y.z + self.p.x * rhs.y.w,
-                     self.x.y * rhs.y.x + self.y.y * rhs.y.y + self.z.y * rhs.y.z + self.p.y * rhs.y.w,
-                     self.x.z * rhs.y.x + self.y.z * rhs.y.y + self.z.z * rhs.y.z + self.p.z * rhs.y.w,
-                     self.x.w * rhs.y.x + self.y.w * rhs.y.y + self.z.w * rhs.y.z + self.p.w * rhs.y.w),
-            z: vec4( self.x.x * rhs.z.x + self.y.x * rhs.z.y + self.z.x * rhs.z.z + self.p.x * rhs.z.w,
-                     self.x.y * rhs.z.x + self.y.y * rhs.z.y + self.z.y * rhs.z.z + self.p.y * rhs.z.w,
-                     self.x.z * rhs.z.x + self.y.z * rhs.z.y + self.z.z * rhs.z.z + self.p.z * rhs.z.w,
-                     self.x.w * rhs.z.x + self.y.w * rhs.z.y + self.z.w * rhs.z.z + self.p.w * rhs.z.w),
-            p: vec4( self.x.x * rhs.p.x + self.y.x * rhs.p.y + self.z.x * rhs.p.z + self.p.x * rhs.p.w,
-                     self.x.y * rhs.p.x + self.y.y * rhs.p.y + self.z.y * rhs.p.z + self.p.y * rhs.p.w,
-                     self.x.z * rhs.p.x + self.y.z * rhs.p.y + self.z.z * rhs.p.z + self.p.z * rhs.p.w,
-                     self.x.w * rhs.p.x + self.y.w * rhs.p.y + self.z.w * rhs.p.z + self.p.w * rhs.p.w)
-        }
+        Mat4::new(
+            self.x.x * rhs.x.x + self.y.x * rhs.x.y + self.z.x * rhs.x.z + self.p.x * rhs.x.w,
+            self.x.x * rhs.y.x + self.y.x * rhs.y.y + self.z.x * rhs.y.z + self.p.x * rhs.y.w,
+            self.x.x * rhs.z.x + self.y.x * rhs.z.y + self.z.x * rhs.z.z + self.p.x * rhs.z.w,
+            self.x.x * rhs.p.x + self.y.x * rhs.p.y + self.z.x * rhs.p.z + self.p.x * rhs.p.w,
+
+            self.x.y * rhs.x.x + self.y.y * rhs.x.y + self.z.y * rhs.x.z + self.p.y * rhs.x.w,
+            self.x.y * rhs.y.x + self.y.y * rhs.y.y + self.z.y * rhs.y.z + self.p.y * rhs.y.w,
+            self.x.y * rhs.z.x + self.y.y * rhs.z.y + self.z.y * rhs.z.z + self.p.y * rhs.z.w,
+            self.x.y * rhs.p.x + self.y.y * rhs.p.y + self.z.y * rhs.p.z + self.p.y * rhs.p.w,
+
+            self.x.z * rhs.x.x + self.y.z * rhs.x.y + self.z.z * rhs.x.z + self.p.z * rhs.x.w,
+            self.x.z * rhs.y.x + self.y.z * rhs.y.y + self.z.z * rhs.y.z + self.p.z * rhs.y.w,
+            self.x.z * rhs.z.x + self.y.z * rhs.z.y + self.z.z * rhs.z.z + self.p.z * rhs.z.w,
+            self.x.z * rhs.p.x + self.y.z * rhs.p.y + self.z.z * rhs.p.z + self.p.z * rhs.p.w,
+
+            self.x.w * rhs.x.x + self.y.w * rhs.x.y + self.z.w * rhs.x.z + self.p.w * rhs.x.w,
+            self.x.w * rhs.y.x + self.y.w * rhs.y.y + self.z.w * rhs.y.z + self.p.w * rhs.y.w,
+            self.x.w * rhs.z.x + self.y.w * rhs.z.y + self.z.w * rhs.z.z + self.p.w * rhs.z.w,
+            self.x.w * rhs.p.x + self.y.w * rhs.p.y + self.z.w * rhs.p.z + self.p.w * rhs.p.w )
     }
 }
 
@@ -656,31 +627,25 @@ impl<T: Float + One + Zero> Mat3<T> {
     #[inline]
     pub fn from_angle_x(theta: T) -> Mat3<T> {
         let (s, c) = theta.sin_cos();
-        Mat3 {
-            x: vec3(T::one(), T::zero(), T::zero()),
-            y: vec3(T::zero(), c, s),
-            z: vec3(T::zero(), -s, c),
-        }
+        Mat3::new( T::one(),  T::zero(), T::zero(),
+                   T::zero(), c,         -s,
+                   T::zero(), s,         c )
     }
 
     #[inline]
     pub fn from_angle_y(theta: T) -> Mat3<T> {
         let (s, c) = theta.sin_cos();
-        Mat3 {
-            x: vec3(c, T::zero(), -s),
-            y: vec3(T::zero(), T::one(), T::zero()),
-            z: vec3(s, T::zero(),  c),
-        }
+        Mat3::new( c,         T::zero(), s,
+                   T::zero(), T::one(),  T::zero(),
+                   -s,        T::zero(), c )
     }
 
     #[inline]
     pub fn from_angle_z(theta: T) -> Mat3<T> {
         let (s, c) = theta.sin_cos();
-        Mat3 {
-            x: vec3(-c, s, T::zero()),
-            y: vec3(-s, c, T::zero()),
-            z: vec3(T::zero(), T::zero(), T::one()),
-        }
+        Mat3::new( -c,        -s,         T::zero(),
+                    s,         c,         T::zero(),
+                    T::zero(), T::zero(), T::one() )
     }
 }
 
@@ -694,11 +659,9 @@ impl Mat3<f32> {
         let z = &axis.z;
         let (s, c) = theta.sin_cos();
         let ic = 1.0 - c;
-        Mat3 { // looks transposed due to constructor layout
-            x: vec3( c + x*x*ic  ,   y*x*ic + z*s,  z*x*ic - y*s ),
-            y: vec3( x*y*ic - z*s,   c + y*y*ic  ,  z*y*ic + x*s ),
-            z: vec3( x*z*ic + y*s,   y*z*ic - x*s,  c + z*z*ic   ),
-        }
+        Mat3::new( x*x*ic + c   , x*y*ic - z*s ,  x*z*ic + y*s,
+                   y*x*ic + z*s , y*y*ic + c   ,  y*z*ic - x*s,
+                   z*x*ic - y*s , z*y*ic + x*s ,  z*z*ic + c   )
     }
 }
 
@@ -712,11 +675,9 @@ impl Mat3<f64> {
         let z = &axis.z;
         let (s, c) = theta.sin_cos();
         let ic = 1.0 - c;
-        Mat3 { // looks transposed due to constructor layout
-            x: vec3( c + x*x*ic  ,   y*x*ic + z*s,  z*x*ic - y*s ),
-            y: vec3( x*y*ic - z*s,   c + y*y*ic  ,  z*y*ic + x*s ),
-            z: vec3( x*z*ic + y*s,   y*z*ic - x*s,  c + z*z*ic   ),
-        }
+        Mat3::new( x*x*ic + c   , x*y*ic - z*s ,  x*z*ic + y*s,
+                   y*x*ic + z*s , y*y*ic + c   ,  y*z*ic - x*s,
+                   z*x*ic - y*s , z*y*ic + x*s ,  z*z*ic + c   )
     }
 }
 
@@ -724,34 +685,28 @@ impl<T: Float + One + Zero> Mat4<T> {
     #[inline]
     pub fn from_angle_x(theta: T) -> Mat4<T> {
         let (s, c) = theta.sin_cos();
-        Mat4 {
-            x: vec4(T::one(), T::zero(), T::zero(), T::zero()),
-            y: vec4(T::zero(), c, s, T::zero()),
-            z: vec4(T::zero(), -s, c, T::zero()),
-            p: vec4(T::zero(), T::zero(), T::zero(), T::one()),
-        }
+        Mat4::new( T::one(),  T::zero(), T::zero(), T::zero(),
+                   T::zero(), c,        -s,         T::zero(),
+                   T::zero(), s,         c,         T::zero(),
+                   T::zero(), T::zero(), T::zero(), T::one() )
     }
 
     #[inline]
     pub fn from_angle_y(theta: T) -> Mat4<T> {
         let (s, c) = theta.sin_cos();
-        Mat4 {
-            x: vec4(c, T::zero(), -s, T::zero()),
-            y: vec4(T::zero(), T::one(), T::zero(), T::zero()),
-            z: vec4(s, T::zero(),  c, T::zero()),
-            p: vec4(T::zero(), T::zero(), T::zero(), T::one()),
-        }
+        Mat4::new( c        , T::zero(),         s, T::zero(),
+                   T::zero(), T::one(),  T::zero(), T::zero(),
+                   -s       , T::zero(),         c, T::zero(),
+                   T::zero(), T::zero(), T::zero(), T::one()   )
     }
 
     #[inline]
     pub fn from_angle_z(theta: T) -> Mat4<T> {
         let (s, c) = theta.sin_cos();
-        Mat4 {
-            x: vec4(c, -s, T::zero(), T::zero()),
-            y: vec4(s, c, T::zero(), T::zero()),
-            z: vec4(T::zero(), T::zero(), T::one(), T::zero()),
-            p: vec4(T::zero(), T::zero(), T::zero(), T::one()),
-        }
+        Mat4::new( c        ,         s, T::zero(), T::zero(),
+                   -s       ,         c, T::zero(), T::zero(),
+                   T::zero(), T::zero(), T::one(),  T::zero(),
+                   T::zero(), T::zero(), T::zero(), T::one()   )
     }
 }
 
@@ -765,12 +720,10 @@ impl Mat4<f32> {
         let z = &axis.z;
         let (s, c) = theta.sin_cos();
         let ic = 1.0 - c;
-        Mat4 { // looks transposed due to constructor layout
-            x: vec4( c + x*x*ic  ,   y*x*ic + z*s,  z*x*ic - y*s , 0.0),
-            y: vec4( x*y*ic - z*s,   c + y*y*ic  ,  z*y*ic + x*s , 0.0),
-            z: vec4( x*z*ic + y*s,   y*z*ic - x*s,  c + z*z*ic   , 0.0),
-            p: vec4( 0.0   ,   0.0   ,  0.0    , 1.0 ),
-        }
+        Mat4::new( x*x*ic + c  , x*y*ic - z*s, x*z*ic + y*s,  0.0,
+                   y*x*ic + z*s, y*y*ic + c  , y*z*ic - x*s,  0.0,
+                   z*x*ic - y*s, z*y*ic + x*s, z*z*ic + c  ,  0.0,
+                   0.0         , 0.0         , 0.0         ,  1.0 )
     }
 }
 
@@ -784,12 +737,10 @@ impl Mat4<f64> {
         let z = &axis.z;
         let (s, c) = theta.sin_cos();
         let ic = 1.0 - c;
-        Mat4 { // looks transposed due to constructor layout
-            x: vec4( c + x*x*ic  ,   y*x*ic + z*s,  z*x*ic - y*s , 0.0),
-            y: vec4( x*y*ic - z*s,   c + y*y*ic  ,  z*y*ic + x*s , 0.0),
-            z: vec4( x*z*ic + y*s,   y*z*ic - x*s,  c + z*z*ic   , 0.0),
-            p: vec4( 0.0   ,   0.0   ,  0.0    , 1.0 ),
-        }
+        Mat4::new( x*x*ic + c  , x*y*ic - z*s, x*z*ic + y*s,  0.0,
+                   y*x*ic + z*s, y*y*ic + c  , y*z*ic - x*s,  0.0,
+                   z*x*ic - y*s, z*y*ic + x*s, z*z*ic + c  ,  0.0,
+                   0.0         , 0.0         , 0.0         ,  1.0 )
     }
 }
 
