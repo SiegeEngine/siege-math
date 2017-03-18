@@ -394,6 +394,77 @@ impl<T: Copy + One + Zero + PartialEq
     }
 }
 
+// -- add ---------------------------------------------------------------------
+
+impl<'a, 'b, T: Copy + Add<T,Output=T>> Add<&'b Mat2<T>> for &'a Mat2<T> {
+    type Output = Mat2<T>;
+
+    #[inline]
+    fn add(self, rhs: &Mat2<T>) -> Mat2<T> {
+        Mat2::new( self.x.x + rhs.x.x,  self.y.x + rhs.y.x,
+                   self.x.y + rhs.x.y,  self.y.y + rhs.y.y )
+    }
+}
+
+impl<'a, 'b, T: Copy + Add<T,Output=T>> Add<&'b Mat3<T>> for &'a Mat3<T> {
+    type Output = Mat3<T>;
+
+    #[inline]
+    fn add(self, rhs: &Mat3<T>) -> Mat3<T> {
+        Mat3::new( self.x.x + rhs.x.x,  self.y.x + rhs.y.x,  self.z.x + rhs.z.x,
+                   self.x.y + rhs.x.y,  self.y.y + rhs.y.y,  self.z.y + rhs.z.y,
+                   self.x.z + rhs.x.z,  self.y.z + rhs.y.z,  self.z.z + rhs.z.z )
+    }
+}
+
+impl<'a, 'b, T: Copy + Add<T,Output=T>> Add<&'b Mat4<T>> for &'a Mat4<T> {
+    type Output = Mat4<T>;
+
+    #[inline]
+    fn add(self, rhs: &Mat4<T>) -> Mat4<T> {
+        Mat4::new(
+            self.x.x + rhs.x.x, self.y.x + rhs.y.x, self.z.x + rhs.z.x, self.p.x + rhs.p.x,
+            self.x.y + rhs.x.y, self.y.y + rhs.y.y, self.z.y + rhs.z.y, self.p.y + rhs.p.y,
+            self.x.z + rhs.x.z, self.y.z + rhs.y.z, self.z.z + rhs.z.z, self.p.z + rhs.p.z,
+            self.x.w + rhs.x.w, self.y.w + rhs.y.z, self.z.w + rhs.z.w, self.p.w + rhs.p.w )
+    }
+}
+
+// -- multiply by scalar ------------------------------------------------------
+
+impl<'a, T: Copy + Mul<T,Output=T>> Mul<T> for &'a Mat2<T> {
+    type Output = Mat2<T>;
+
+    #[inline]
+    fn mul(self, rhs: T) -> Mat2<T> {
+        Mat2::new( self.x.x * rhs, self.y.x * rhs,
+                   self.x.y * rhs, self.y.y * rhs )
+    }
+}
+
+impl<'a, T: Copy + Mul<T,Output=T>> Mul<T> for &'a Mat3<T> {
+    type Output = Mat3<T>;
+
+    #[inline]
+    fn mul(self, rhs: T) -> Mat3<T> {
+        Mat3::new( self.x.x * rhs, self.y.x * rhs, self.z.x * rhs,
+                   self.x.y * rhs, self.y.y * rhs, self.z.y * rhs,
+                   self.x.z * rhs, self.y.z * rhs, self.z.z * rhs )
+    }
+}
+
+impl<'a, T: Copy + Mul<T,Output=T>> Mul<T> for &'a Mat4<T> {
+    type Output = Mat4<T>;
+
+    #[inline]
+    fn mul(self, rhs: T) -> Mat4<T> {
+        Mat4::new( self.x.x * rhs, self.y.x * rhs, self.z.x * rhs, self.p.x * rhs,
+                   self.x.y * rhs, self.y.y * rhs, self.z.y * rhs, self.p.y * rhs,
+                   self.x.z * rhs, self.y.z * rhs, self.z.z * rhs, self.p.z * rhs,
+                   self.x.w * rhs, self.y.w * rhs, self.z.w * rhs, self.p.w * rhs )
+    }
+}
+
 // -- multiply by matrix ------------------------------------------------------
 
 impl<'a, 'b, T: Copy + Mul<T,Output=T> + Add<T,Output=T>> Mul<&'b Mat2<T>> for &'a Mat2<T> {
