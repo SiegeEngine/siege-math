@@ -322,6 +322,13 @@ impl<T: Copy + Mul<T,Output=T> + Sub<T,Output=T>> Vec3<T> {
     }
 }
 
+impl<T: Copy + Mul<T,Output=T> + Sub<T,Output=T> + Add<T,Output=T>> Vec3<T> {
+    #[inline]
+    pub fn triple_product(&self, b: Vec3<T>, c: Vec3<T>) -> T {
+        self.cross(b).dot(c)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use float_cmp:: ApproxEqUlps;
