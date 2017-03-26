@@ -329,6 +329,12 @@ impl<T: Copy + Mul<T,Output=T> + Sub<T,Output=T> + Add<T,Output=T>> Vec3<T> {
     }
 }
 
+impl<T: Copy + Mul<T,Output=T> + Div<T,Output=T> + Add<T,Output=T>> Vec3<T> {
+    pub fn project_onto(&self, axis: Vec3<T>) -> Vec3<T> {
+        axis * (self.dot(axis) / axis.squared_magnitude())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use float_cmp:: ApproxEqUlps;
