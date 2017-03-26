@@ -330,8 +330,16 @@ impl<T: Copy + Mul<T,Output=T> + Sub<T,Output=T> + Add<T,Output=T>> Vec3<T> {
 }
 
 impl<T: Copy + Mul<T,Output=T> + Div<T,Output=T> + Add<T,Output=T>> Vec3<T> {
+    #[inline]
     pub fn project_onto(&self, axis: Vec3<T>) -> Vec3<T> {
-        axis * (self.dot(axis) / axis.squared_magnitude())
+        axis * (self.dot(axis) / axis.dot(axis))
+    }
+}
+
+impl<T: Copy + Mul<T,Output=T> + Div<T,Output=T> + Add<T,Output=T> + Sub<T,Output=T>> Vec3<T> {
+    #[inline]
+    pub fn reject_onto(&self, axis: Vec3<T>) -> Vec3<T> {
+        *self - self.project_onto(axis)
     }
 }
 
