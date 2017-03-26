@@ -714,7 +714,7 @@ impl<T: Float + One + Zero> Mat3<T> {
     #[inline]
     pub fn from_angle_z(theta: T) -> Mat3<T> {
         let (s, c) = theta.sin_cos();
-        Mat3::new( -c,        -s,         T::zero(),
+        Mat3::new(  c,        -s,         T::zero(),
                     s,         c,         T::zero(),
                     T::zero(), T::zero(), T::one() )
     }
