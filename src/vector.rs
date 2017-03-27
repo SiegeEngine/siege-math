@@ -31,6 +31,10 @@ pub struct Vec4<F> {
     pub w: F,
 }
 
+pub struct NVec2<F>(Vec2<F>);
+pub struct NVec3<F>(Vec3<F>);
+pub struct NVec4<F>(Vec4<F>);
+
 impl<F> Index<usize> for Vec2<F> {
     type Output = F;
 
@@ -135,12 +139,37 @@ impl<F: Copy> Vec4<F> {
 }
 
 macro_rules! impl_vector {
-    ($VecN:ident { $first:ident, $($field:ident),* }) => {
+    ($VecN:ident $NVecN:ident { $first:ident, $($field:ident),* }) => {
         impl<F> $VecN<F> {
             /// Construct a new vector
             #[inline]
             pub fn new($first: F, $($field: F),*) -> $VecN<F> {
                 $VecN { $first: $first, $($field: $field),* }
+            }
+        }
+
+        impl From<$VecN<f32>> for $NVecN<f32> {
+            fn from(mut input: $VecN<f32>) -> $NVecN<f32>
+            {
+                input.as_normal()
+            }
+        }
+        impl From<$VecN<f64>> for $NVecN<f64> {
+            fn from(mut input: $VecN<f64>) -> $NVecN<f64>
+            {
+                input.as_normal()
+            }
+        }
+        impl From<$NVecN<f32>> for $VecN<f32> {
+            fn from(input: $NVecN<f32>) -> $VecN<f32>
+            {
+                input.0
+            }
+        }
+        impl From<$NVecN<f64>> for $VecN<f64> {
+            fn from(input: $NVecN<f64>) -> $VecN<f64>
+            {
+                input.0
             }
         }
 
@@ -175,10 +204,12 @@ macro_rules! impl_vector {
             }
 
             #[inline]
-            pub fn normalize(&mut self) {
+            pub fn as_normal(&mut self) -> $NVecN<f32> {
                 let mag = self.magnitude();
-                self.$first /= mag;
-                $(self.$field /= mag);*
+                $NVecN($VecN {
+                    $first: self.$first / mag,
+                    $($field: self.$field / mag),*
+                })
             }
         }
 
@@ -192,10 +223,12 @@ macro_rules! impl_vector {
             }
 
             #[inline]
-            pub fn normalize(&mut self) {
+            pub fn as_normal(&mut self) -> $NVecN<f64> {
                 let mag = self.magnitude();
-                self.$first /= mag;
-                $(self.$field /= mag);*
+                $NVecN($VecN {
+                    $first: self.$first / mag,
+                    $($field: self.$field / mag),*
+                })
             }
         }
 
@@ -323,9 +356,9 @@ macro_rules! impl_vector {
     }
 }
 
-impl_vector!(Vec2 { x, y });
-impl_vector!(Vec3 { x, y, z });
-impl_vector!(Vec4 { x, y, z, w });
+impl_vector!(Vec2 NVec2 { x, y });
+impl_vector!(Vec3 NVec3 { x, y, z });
+impl_vector!(Vec4 NVec4 { x, y, z, w });
 
 impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F>> Vec3<F> {
     #[inline]

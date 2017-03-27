@@ -3,7 +3,7 @@ use num_traits::identities::{Zero, One};
 use num_traits::float::Float;
 use std::ops::{Index, IndexMut, Mul, Add, Neg, Div, Sub};
 use std::default::Default;
-use super::vector::{Vec2, Vec3, Vec4};
+use super::vector::{Vec2, Vec3, Vec4, NVec2, NVec3, NVec4};
 
 // NOTE: we store matrices in column-major order, which means we pre-multiply.
 // This is traditional so matrices directly copied to the GPU will work with
@@ -723,8 +723,8 @@ impl<F: Float + One + Zero> Mat3<F> {
 impl Mat3<f32> {
     // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
     //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(mut axis: Vec3<f32>, theta: f32) -> Mat3<f32> {
-        axis.normalize();
+    pub fn rotate_axis_angle(axis: NVec3<f32>, theta: f32) -> Mat3<f32> {
+        let axis: Vec3<f32> = From::from(axis);
         let x = &axis.x;
         let y = &axis.y;
         let z = &axis.z;
@@ -739,8 +739,8 @@ impl Mat3<f32> {
 impl Mat3<f64> {
     // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
     //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(mut axis: Vec3<f64>, theta: f64) -> Mat3<f64> {
-        axis.normalize();
+    pub fn rotate_axis_angle(axis: NVec3<f64>, theta: f64) -> Mat3<f64> {
+        let axis: Vec3<f64> = From::from(axis);
         let x = &axis.x;
         let y = &axis.y;
         let z = &axis.z;
@@ -784,8 +784,8 @@ impl<F: Float + One + Zero> Mat4<F> {
 impl Mat4<f32> {
     // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
     //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(mut axis: Vec3<f32>, theta: f32) -> Mat4<f32> {
-        axis.normalize();
+    pub fn rotate_axis_angle(axis: NVec3<f32>, theta: f32) -> Mat4<f32> {
+        let axis: Vec3<f32> = From::from(axis);
         let x = &axis.x;
         let y = &axis.y;
         let z = &axis.z;
@@ -801,8 +801,8 @@ impl Mat4<f32> {
 impl Mat4<f64> {
     // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
     //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(mut axis: Vec3<f64>, theta: f64) -> Mat4<f64> {
-        axis.normalize();
+    pub fn rotate_axis_angle(axis: NVec3<f64>, theta: f64) -> Mat4<f64> {
+        let axis: Vec3<f64> = From::from(axis);
         let x = &axis.x;
         let y = &axis.y;
         let z = &axis.z;
@@ -820,8 +820,8 @@ impl Mat4<f64> {
 impl Mat3<f32> {
     #[inline]
     /// Reflection matrix
-    pub fn reflect_origin_plane(mut a: Vec3<f32>) -> Mat3<f32> {
-        a.normalize();
+    pub fn reflect_origin_plane(a: NVec3<f32>) -> Mat3<f32> {
+        let a: Vec3<f32> = From::from(a);
         let x: f32 = a.x * -2.0;
         let y: f32 = a.y * -2.0;
         let z: f32 = a.z * -2.0;
@@ -837,8 +837,8 @@ impl Mat3<f32> {
 impl Mat3<f64> {
     #[inline]
     /// Reflection matrix
-    pub fn reflect_origin_plane(mut a: Vec3<f64>) -> Mat3<f64> {
-        a.normalize();
+    pub fn reflect_origin_plane(mut a: NVec3<f64>) -> Mat3<f64> {
+        let a: Vec3<f64> = From::from(a);
         let x: f64 = a.x * -2.0;
         let y: f64 = a.y * -2.0;
         let z: f64 = a.z * -2.0;
@@ -854,8 +854,8 @@ impl Mat3<f64> {
 impl Mat3<f32> {
     #[inline]
     /// Involution matrix
-    pub fn involve_origin_plane(mut a: Vec3<f32>) -> Mat3<f32> {
-        a.normalize();
+    pub fn involve_origin_plane(a: NVec3<f32>) -> Mat3<f32> {
+        let a: Vec3<f32> = From::from(a);
         let x: f32 = a.x * 2.0;
         let y: f32 = a.y * 2.0;
         let z: f32 = a.z * 2.0;
@@ -871,8 +871,8 @@ impl Mat3<f32> {
 impl Mat3<f64> {
     #[inline]
     /// Involution matrix
-    pub fn involve_origin_plane(mut a: Vec3<f64>) -> Mat3<f64> {
-        a.normalize();
+    pub fn involve_origin_plane(a: NVec3<f64>) -> Mat3<f64> {
+        let a: Vec3<f64> = From::from(a);
         let x: f64 = a.x * 2.0;
         let y: f64 = a.y * 2.0;
         let z: f64 = a.z * 2.0;
@@ -911,8 +911,8 @@ impl<F: Zero + Copy> Mat4<F> {
 
 impl Mat3<f32> {
     /// Scale along vector
-    pub fn scale_in_direction(mut s: f32, mut a: Vec3<f32>) -> Mat3<f32> {
-        a.normalize();
+    pub fn scale_in_direction(mut s: f32, a: NVec3<f32>) -> Mat3<f32> {
+        let a: Vec3<f32> = From::from(a);
         s -= 1.0;
         let x = a.x * s;
         let y = a.y * s;
@@ -928,8 +928,8 @@ impl Mat3<f32> {
 
 impl Mat3<f64> {
     /// Scale along vector
-    pub fn scale_in_direction(mut s: f64, mut a: Vec3<f64>) -> Mat3<f64> {
-        a.normalize();
+    pub fn scale_in_direction(mut s: f64, a: NVec3<f64>) -> Mat3<f64> {
+        let a: Vec3<f64> = From::from(a);
         s -= 1.0;
         let x = a.x * s;
         let y = a.y * s;
@@ -948,7 +948,7 @@ impl Mat3<f64> {
 #[cfg(test)]
 mod tests {
     use super::{Mat2, Mat3, Mat4};
-    use super::super::vector::{Vec2, Vec3, Vec4};
+    use super::super::vector::{Vec2, Vec3, Vec4, NVec3};
 
     #[test]
     fn test_index() {
@@ -1111,7 +1111,7 @@ mod tests {
 
     #[test]
     fn test_axis_angle() {
-        let axis = Vec3::new(1.0, 0.0, 0.0);
+        let axis: NVec3<f32> = From::from(Vec3::new(1.0, 0.0, 0.0));
         let angle = ::std::f32::consts::FRAC_PI_4;
 
         let start: Mat4<f32> = Mat4::new(
