@@ -3,7 +3,7 @@ use num_traits::identities::{Zero, One};
 use num_traits::float::Float;
 use std::ops::{Index, IndexMut, Mul, Add, Neg, Div, Sub};
 use std::default::Default;
-use super::vector::{Vec2, Vec3, Vec4, vec2, vec3, vec4};
+use super::vector::{Vec2, Vec3, Vec4};
 
 // NOTE: we store matrices in column-major order, which means we pre-multiply.
 // This is traditional so matrices directly copied to the GPU will work with
@@ -133,8 +133,8 @@ impl<T> Mat2<T> {
                r1c0: T, r1c1: T) -> Mat2<T>
     {
         Mat2 { // looks transposed because stored column-major
-            x: vec2(r0c0, r1c0),
-            y: vec2(r0c1, r1c1),
+            x: Vec2::new(r0c0, r1c0),
+            y: Vec2::new(r0c1, r1c1),
         }
     }
 
@@ -152,9 +152,9 @@ impl<T> Mat3<T> {
                r2c0: T, r2c1: T, r2c2: T) -> Mat3<T>
     {
         Mat3 { // looks transposed because stored column-major
-            x: vec3(r0c0, r1c0, r2c0),
-            y: vec3(r0c1, r1c1, r2c1),
-            z: vec3(r0c2, r1c2, r2c2),
+            x: Vec3::new(r0c0, r1c0, r2c0),
+            y: Vec3::new(r0c1, r1c1, r2c1),
+            z: Vec3::new(r0c2, r1c2, r2c2),
         }
     }
 
@@ -173,10 +173,10 @@ impl<T> Mat4<T> {
                r3c0: T, r3c1: T, r3c2: T, r3c3: T) -> Mat4<T>
     {
         Mat4 { // looks transposed because stored column-major
-            x: vec4(r0c0, r1c0, r2c0, r3c0),
-            y: vec4(r0c1, r1c1, r2c1, r3c1),
-            z: vec4(r0c2, r1c2, r2c2, r3c2),
-            p: vec4(r0c3, r1c3, r2c3, r3c3),
+            x: Vec4::new(r0c0, r1c0, r2c0, r3c0),
+            y: Vec4::new(r0c1, r1c1, r2c1, r3c1),
+            z: Vec4::new(r0c2, r1c2, r2c2, r3c2),
+            p: Vec4::new(r0c3, r1c3, r2c3, r3c3),
         }
     }
 
@@ -688,8 +688,8 @@ impl<T: Float> Mat2<T> {
     pub fn from_angle(theta: T) -> Mat2<T> {
         let (s, c) = theta.sin_cos();
         Mat2 {
-            x: vec2(c, s),
-            y: vec2(-s, c),
+            x: Vec2::new(c, s),
+            y: Vec2::new(-s, c),
         }
     }
 }

@@ -113,9 +113,9 @@ impl<T: Copy> Vec3<T> {
     #[inline]
     pub fn truncate_n(&self, n: usize) -> Vec2<T> {
         match n {
-            0 => vec2(self.y, self.z),
-            1 => vec2(self.x, self.z),
-            2 => vec2(self.x, self.y),
+            0 => Vec2::new(self.y, self.z),
+            1 => Vec2::new(self.x, self.z),
+            2 => Vec2::new(self.x, self.y),
             _ => panic!("Index out of bounds for Vec3"),
         }
     }
@@ -125,29 +125,23 @@ impl<T: Copy> Vec4<T> {
     #[inline]
     pub fn truncate_n(&self, n: usize) -> Vec3<T> {
         match n {
-            0 => vec3(self.y, self.z, self.w),
-            1 => vec3(self.x, self.z, self.w),
-            2 => vec3(self.x, self.y, self.w),
-            3 => vec3(self.x, self.y, self.z),
+            0 => Vec3::new(self.y, self.z, self.w),
+            1 => Vec3::new(self.x, self.z, self.w),
+            2 => Vec3::new(self.x, self.y, self.w),
+            3 => Vec3::new(self.x, self.y, self.z),
             _ => panic!("Index out of bounds for Vec4"),
         }
     }
 }
 
 macro_rules! impl_vector {
-    ($VecN:ident { $first:ident, $($field:ident),* }, $constructor:ident) => {
+    ($VecN:ident { $first:ident, $($field:ident),* }) => {
         impl<T> $VecN<T> {
             /// Construct a new vector
             #[inline]
             pub fn new($first: T, $($field: T),*) -> $VecN<T> {
                 $VecN { $first: $first, $($field: $field),* }
             }
-        }
-
-        /// Construct a new vector
-        #[inline]
-        pub fn $constructor<T>($first: T, $($field: T),*) -> $VecN<T> {
-            $VecN::new($first, $($field),*)
         }
 
         impl<T: Zero> $VecN<T> {
@@ -329,9 +323,9 @@ macro_rules! impl_vector {
     }
 }
 
-impl_vector!(Vec2 { x, y }, vec2);
-impl_vector!(Vec3 { x, y, z }, vec3);
-impl_vector!(Vec4 { x, y, z, w }, vec4);
+impl_vector!(Vec2 { x, y });
+impl_vector!(Vec3 { x, y, z });
+impl_vector!(Vec4 { x, y, z, w });
 
 impl<T: Copy + Mul<T,Output=T> + Sub<T,Output=T>> Vec3<T> {
     #[inline]
