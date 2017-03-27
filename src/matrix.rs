@@ -815,6 +815,77 @@ impl Mat4<f64> {
     }
 }
 
+// -- Reflection --------------------------------------------------------------
+
+impl Mat3<f32> {
+    #[inline]
+    /// Reflection matrix
+    pub fn reflect_origin_plane(mut a: Vec3<f32>) -> Mat3<f32> {
+        a.normalize();
+        let x: f32 = a.x * -2.0;
+        let y: f32 = a.y * -2.0;
+        let z: f32 = a.z * -2.0;
+        let axay = x * a.y;
+        let axaz = x * a.z;
+        let ayaz = y * a.z;
+        Mat3::new( x * a.x + 1.0,   axay,           axaz,
+                   axay,            y * a.y + 1.0,  ayaz,
+                   axaz,            ayaz,           z * a.z + 1.0 )
+    }
+}
+
+impl Mat3<f64> {
+    #[inline]
+    /// Reflection matrix
+    pub fn reflect_origin_plane(mut a: Vec3<f64>) -> Mat3<f64> {
+        a.normalize();
+        let x: f64 = a.x * -2.0;
+        let y: f64 = a.y * -2.0;
+        let z: f64 = a.z * -2.0;
+        let axay = x * a.y;
+        let axaz = x * a.z;
+        let ayaz = y * a.z;
+        Mat3::new( x * a.x + 1.0,   axay,           axaz,
+                   axay,            y * a.y + 1.0,  ayaz,
+                   axaz,            ayaz,           z * a.z + 1.0 )
+    }
+}
+
+impl Mat3<f32> {
+    #[inline]
+    /// Involution matrix
+    pub fn involve_origin_plane(mut a: Vec3<f32>) -> Mat3<f32> {
+        a.normalize();
+        let x: f32 = a.x * 2.0;
+        let y: f32 = a.y * 2.0;
+        let z: f32 = a.z * 2.0;
+        let axay = x * a.y;
+        let axaz = x * a.z;
+        let ayaz = y * a.z;
+        Mat3::new( x * a.x - 1.0,   axay,           axaz,
+                   axay,            y * a.y - 1.0,  ayaz,
+                   axaz,            ayaz,           z * a.z - 1.0 )
+    }
+}
+
+impl Mat3<f64> {
+    #[inline]
+    /// Involution matrix
+    pub fn involve_origin_plane(mut a: Vec3<f64>) -> Mat3<f64> {
+        a.normalize();
+        let x: f64 = a.x * 2.0;
+        let y: f64 = a.y * 2.0;
+        let z: f64 = a.z * 2.0;
+        let axay = x * a.y;
+        let axaz = x * a.z;
+        let ayaz = y * a.z;
+        Mat3::new( x * a.x - 1.0,   axay,           axaz,
+                   axay,            y * a.y - 1.0,  ayaz,
+                   axaz,            ayaz,           z * a.z - 1.0 )
+    }
+}
+
+// ----------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
