@@ -885,6 +885,64 @@ impl Mat3<f64> {
     }
 }
 
+// -- Scale -------------------------------------------------------------------
+
+impl<T: Zero + One + Copy + Mul<T,Output=T>> Mat3<T> {
+    #[inline]
+    /// Scale matrix
+    pub fn scale(a: &Vec3<T>) -> Mat3<T> {
+        Mat3::new(a.x, T::zero(), T::zero(),
+                  T::zero(), a.y, T::zero(),
+                  T::zero(), T::zero(), a.z)
+    }
+}
+
+impl<T: Zero + Copy> Mat4<T> {
+    #[inline]
+    /// Scale matrix
+    pub fn scale(a: &Vec4<T>) -> Mat4<T> {
+        Mat4::new(a.x, T::zero(), T::zero(), T::zero(),
+                  T::zero(), a.y, T::zero(), T::zero(),
+                  T::zero(), T::zero(), a.z, T::zero(),
+                  T::zero(), T::zero(), T::zero(), a.w)
+    }
+}
+
+
+impl Mat3<f32> {
+    /// Scale along vector
+    pub fn scale_in_direction(mut s: f32, mut a: Vec3<f32>) -> Mat3<f32> {
+        a.normalize();
+        s -= 1.0;
+        let x = a.x * s;
+        let y = a.y * s;
+        let z = a.z * s;
+        let axay = x * a.y;
+        let axaz = x * a.z;
+        let ayaz = y * a.z;
+        Mat3::new(x * a.x + 1.0,  axay,           axaz,
+                  axay,           y * a.y + 1.0,  ayaz,
+                  axaz,           ayaz,           z * a.z + 1.0)
+    }
+}
+
+impl Mat3<f64> {
+    /// Scale along vector
+    pub fn scale_in_direction(mut s: f64, mut a: Vec3<f64>) -> Mat3<f64> {
+        a.normalize();
+        s -= 1.0;
+        let x = a.x * s;
+        let y = a.y * s;
+        let z = a.z * s;
+        let axay = x * a.y;
+        let axaz = x * a.z;
+        let ayaz = y * a.z;
+        Mat3::new(x * a.x + 1.0,  axay,           axaz,
+                  axay,           y * a.y + 1.0,  ayaz,
+                  axaz,           ayaz,           z * a.z + 1.0)
+    }
+}
+
 // ----------------------------------------------------------------------------
 
 #[cfg(test)]
