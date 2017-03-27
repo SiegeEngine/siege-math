@@ -7,35 +7,35 @@ use std::default::Default;
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct Vec2<T> {
-    pub x: T,
-    pub y: T,
+pub struct Vec2<F> {
+    pub x: F,
+    pub y: F,
 }
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct Vec3<T> {
-    pub x: T,
-    pub y: T,
-    pub z: T,
+pub struct Vec3<F> {
+    pub x: F,
+    pub y: F,
+    pub z: F,
 }
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct Vec4<T> {
-    pub x: T,
-    pub y: T,
-    pub z: T,
-    pub w: T,
+pub struct Vec4<F> {
+    pub x: F,
+    pub y: F,
+    pub z: F,
+    pub w: F,
 }
 
-impl<T> Index<usize> for Vec2<T> {
-    type Output = T;
+impl<F> Index<usize> for Vec2<F> {
+    type Output = F;
 
     #[inline]
-    fn index(&self, i: usize) -> &T {
+    fn index(&self, i: usize) -> &F {
         match i {
             0 => &self.x,
             1 => &self.y,
@@ -44,11 +44,11 @@ impl<T> Index<usize> for Vec2<T> {
     }
 }
 
-impl<T> Index<usize> for Vec3<T> {
-    type Output = T;
+impl<F> Index<usize> for Vec3<F> {
+    type Output = F;
 
     #[inline]
-    fn index(&self, i: usize) -> &T {
+    fn index(&self, i: usize) -> &F {
         match i {
             0 => &self.x,
             1 => &self.y,
@@ -58,11 +58,11 @@ impl<T> Index<usize> for Vec3<T> {
     }
 }
 
-impl<T> Index<usize> for Vec4<T> {
-    type Output = T;
+impl<F> Index<usize> for Vec4<F> {
+    type Output = F;
 
     #[inline]
-    fn index(&self, i: usize) -> &T {
+    fn index(&self, i: usize) -> &F {
         match i {
             0 => &self.x,
             1 => &self.y,
@@ -73,9 +73,9 @@ impl<T> Index<usize> for Vec4<T> {
     }
 }
 
-impl<T> IndexMut<usize> for Vec2<T> {
+impl<F> IndexMut<usize> for Vec2<F> {
     #[inline]
-    fn index_mut(&mut self, i: usize) -> &mut T {
+    fn index_mut(&mut self, i: usize) -> &mut F {
         match i {
             0 => &mut self.x,
             1 => &mut self.y,
@@ -84,9 +84,9 @@ impl<T> IndexMut<usize> for Vec2<T> {
     }
 }
 
-impl<T> IndexMut<usize> for Vec3<T> {
+impl<F> IndexMut<usize> for Vec3<F> {
     #[inline]
-    fn index_mut(&mut self, i: usize) -> &mut T {
+    fn index_mut(&mut self, i: usize) -> &mut F {
         match i {
             0 => &mut self.x,
             1 => &mut self.y,
@@ -96,9 +96,9 @@ impl<T> IndexMut<usize> for Vec3<T> {
     }
 }
 
-impl<T> IndexMut<usize> for Vec4<T> {
+impl<F> IndexMut<usize> for Vec4<F> {
     #[inline]
-    fn index_mut(&mut self, i: usize) -> &mut T {
+    fn index_mut(&mut self, i: usize) -> &mut F {
         match i {
             0 => &mut self.x,
             1 => &mut self.y,
@@ -109,9 +109,9 @@ impl<T> IndexMut<usize> for Vec4<T> {
     }
 }
 
-impl<T: Copy> Vec3<T> {
+impl<F: Copy> Vec3<F> {
     #[inline]
-    pub fn truncate_n(&self, n: usize) -> Vec2<T> {
+    pub fn truncate_n(&self, n: usize) -> Vec2<F> {
         match n {
             0 => Vec2::new(self.y, self.z),
             1 => Vec2::new(self.x, self.z),
@@ -121,9 +121,9 @@ impl<T: Copy> Vec3<T> {
     }
 }
 
-impl<T: Copy> Vec4<T> {
+impl<F: Copy> Vec4<F> {
     #[inline]
-    pub fn truncate_n(&self, n: usize) -> Vec3<T> {
+    pub fn truncate_n(&self, n: usize) -> Vec3<F> {
         match n {
             0 => Vec3::new(self.y, self.z, self.w),
             1 => Vec3::new(self.x, self.z, self.w),
@@ -136,31 +136,31 @@ impl<T: Copy> Vec4<T> {
 
 macro_rules! impl_vector {
     ($VecN:ident { $first:ident, $($field:ident),* }) => {
-        impl<T> $VecN<T> {
+        impl<F> $VecN<F> {
             /// Construct a new vector
             #[inline]
-            pub fn new($first: T, $($field: T),*) -> $VecN<T> {
+            pub fn new($first: F, $($field: F),*) -> $VecN<F> {
                 $VecN { $first: $first, $($field: $field),* }
             }
         }
 
-        impl<T: Zero> $VecN<T> {
+        impl<F: Zero> $VecN<F> {
             #[inline]
-            pub fn zero() -> $VecN<T> {
-                $VecN { $first: T::zero(), $($field: T::zero()),* }
+            pub fn zero() -> $VecN<F> {
+                $VecN { $first: F::zero(), $($field: F::zero()),* }
             }
         }
 
-        impl<T: Default> Default for $VecN<T> {
+        impl<F: Default> Default for $VecN<F> {
             #[inline]
-            fn default() -> $VecN<T> {
-                $VecN { $first: T::default(), $($field: T::default()),* }
+            fn default() -> $VecN<F> {
+                $VecN { $first: F::default(), $($field: F::default()),* }
             }
         }
 
-        impl<T: Copy + Mul<T,Output=T> + Add<T,Output=T>> $VecN<T>{
+        impl<F: Copy + Mul<F,Output=F> + Add<F,Output=F>> $VecN<F>{
             #[inline]
-            pub fn squared_magnitude(&self) -> T {
+            pub fn squared_magnitude(&self) -> F {
                 self.$first * self.$first $(+ self.$field * self.$field)*
             }
         }
@@ -199,11 +199,11 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<T: Copy + Mul<T,Output=T>> Mul<T> for $VecN<T> {
-            type Output = $VecN<T>;
+        impl<F: Copy + Mul<F,Output=F>> Mul<F> for $VecN<F> {
+            type Output = $VecN<F>;
 
             #[inline]
-            fn mul(self, rhs: T) -> $VecN<T> {
+            fn mul(self, rhs: F) -> $VecN<F> {
                 $VecN {
                     $first: self.$first * rhs,
                     $($field: self.$field * rhs),*
@@ -233,19 +233,19 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<T: Copy + MulAssign<T>> MulAssign<T> for $VecN<T> {
+        impl<F: Copy + MulAssign<F>> MulAssign<F> for $VecN<F> {
             #[inline]
-            fn mul_assign(&mut self, rhs: T) {
+            fn mul_assign(&mut self, rhs: F) {
                 self.$first *= rhs;
                 $(self.$field *= rhs);*
             }
         }
 
-        impl<T: Copy + Div<T,Output=T>> Div<T> for $VecN<T> {
-            type Output = $VecN<T>;
+        impl<F: Copy + Div<F,Output=F>> Div<F> for $VecN<F> {
+            type Output = $VecN<F>;
 
             #[inline]
-            fn div(self, rhs: T) -> $VecN<T> {
+            fn div(self, rhs: F) -> $VecN<F> {
                 $VecN {
                     $first: self.$first / rhs,
                     $($field: self.$field / rhs),*
@@ -253,19 +253,19 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<T: Copy + DivAssign<T>> DivAssign<T> for $VecN<T> {
+        impl<F: Copy + DivAssign<F>> DivAssign<F> for $VecN<F> {
             #[inline]
-            fn div_assign(&mut self, rhs: T) {
+            fn div_assign(&mut self, rhs: F) {
                 self.$first /= rhs;
                 $(self.$field /= rhs);*
             }
         }
 
-        impl<T: Neg<Output=T>> Neg for $VecN<T> {
-            type Output = $VecN<T>;
+        impl<F: Neg<Output=F>> Neg for $VecN<F> {
+            type Output = $VecN<F>;
 
             #[inline]
-            fn neg(self) -> $VecN<T> {
+            fn neg(self) -> $VecN<F> {
                 $VecN {
                     $first: -self.$first,
                     $($field: -self.$field),*
@@ -273,11 +273,11 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<T: Add<Output=T>> Add for $VecN<T> {
-            type Output = $VecN<T>;
+        impl<F: Add<Output=F>> Add for $VecN<F> {
+            type Output = $VecN<F>;
 
             #[inline]
-            fn add(self, other: $VecN<T>) -> $VecN<T> {
+            fn add(self, other: $VecN<F>) -> $VecN<F> {
                 $VecN {
                     $first: self.$first + other.$first,
                     $($field: self.$field + other.$field),*
@@ -285,19 +285,19 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<'a, T: Copy + AddAssign<T>> AddAssign<&'a $VecN<T>> for $VecN<T> {
+        impl<'a, F: Copy + AddAssign<F>> AddAssign<&'a $VecN<F>> for $VecN<F> {
             #[inline]
-            fn add_assign(&mut self, other: &'a $VecN<T>) {
+            fn add_assign(&mut self, other: &'a $VecN<F>) {
                 self.$first += other.$first;
                 $(self.$field += other.$field);*
             }
         }
 
-        impl<T: Sub<Output=T>> Sub for $VecN<T> {
-            type Output = $VecN<T>;
+        impl<F: Sub<Output=F>> Sub for $VecN<F> {
+            type Output = $VecN<F>;
 
             #[inline]
-            fn sub(self, other: $VecN<T>) -> $VecN<T> {
+            fn sub(self, other: $VecN<F>) -> $VecN<F> {
                 $VecN {
                     $first: self.$first - other.$first,
                     $($field: self.$field - other.$field),*
@@ -305,17 +305,17 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<'a, T: Copy + SubAssign<T>> SubAssign<&'a $VecN<T>> for $VecN<T> {
+        impl<'a, F: Copy + SubAssign<F>> SubAssign<&'a $VecN<F>> for $VecN<F> {
             #[inline]
-            fn sub_assign(&mut self, other: &'a $VecN<T>) {
+            fn sub_assign(&mut self, other: &'a $VecN<F>) {
                 self.$first -= other.$first;
                 $(self.$field -= other.$field);*
             }
         }
 
-        impl<T: Copy + Mul<T,Output=T> + Add<T,Output=T>> $VecN<T> {
+        impl<F: Copy + Mul<F,Output=F> + Add<F,Output=F>> $VecN<F> {
             #[inline]
-            pub fn dot(&self, rhs: $VecN<T>) -> T {
+            pub fn dot(&self, rhs: $VecN<F>) -> F {
                 self.$first * rhs.$first
                     $(+ self.$field * rhs.$field)*
             }
@@ -327,9 +327,9 @@ impl_vector!(Vec2 { x, y });
 impl_vector!(Vec3 { x, y, z });
 impl_vector!(Vec4 { x, y, z, w });
 
-impl<T: Copy + Mul<T,Output=T> + Sub<T,Output=T>> Vec3<T> {
+impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F>> Vec3<F> {
     #[inline]
-    pub fn cross(&self, rhs: Vec3<T>) -> Vec3<T> {
+    pub fn cross(&self, rhs: Vec3<F>) -> Vec3<F> {
         Vec3::new(
             self.y*rhs.z - self.z*rhs.y,
             self.z*rhs.x - self.x*rhs.z,
@@ -338,47 +338,47 @@ impl<T: Copy + Mul<T,Output=T> + Sub<T,Output=T>> Vec3<T> {
     }
 }
 
-impl<T: Copy + Mul<T,Output=T> + Sub<T,Output=T> + Add<T,Output=T>> Vec3<T> {
+impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F> + Add<F,Output=F>> Vec3<F> {
     #[inline]
-    pub fn triple_product(&self, b: Vec3<T>, c: Vec3<T>) -> T {
+    pub fn triple_product(&self, b: Vec3<F>, c: Vec3<F>) -> F {
         self.cross(b).dot(c)
     }
 }
 
-impl<T: Copy + Mul<T,Output=T> + Div<T,Output=T> + Add<T,Output=T>> Vec2<T> {
+impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F>> Vec2<F> {
     #[inline]
-    pub fn project_onto(&self, axis: Vec2<T>) -> Vec2<T> {
+    pub fn project_onto(&self, axis: Vec2<F>) -> Vec2<F> {
         axis * (self.dot(axis) / axis.dot(axis))
     }
 }
-impl<T: Copy + Mul<T,Output=T> + Div<T,Output=T> + Add<T,Output=T>> Vec3<T> {
+impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F>> Vec3<F> {
     #[inline]
-    pub fn project_onto(&self, axis: Vec3<T>) -> Vec3<T> {
+    pub fn project_onto(&self, axis: Vec3<F>) -> Vec3<F> {
         axis * (self.dot(axis) / axis.dot(axis))
     }
 }
-impl<T: Copy + Mul<T,Output=T> + Div<T,Output=T> + Add<T,Output=T>> Vec4<T> {
+impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F>> Vec4<F> {
     #[inline]
-    pub fn project_onto(&self, axis: Vec4<T>) -> Vec4<T> {
+    pub fn project_onto(&self, axis: Vec4<F>) -> Vec4<F> {
         axis * (self.dot(axis) / axis.dot(axis))
     }
 }
 
-impl<T: Copy + Mul<T,Output=T> + Div<T,Output=T> + Add<T,Output=T> + Sub<T,Output=T>> Vec2<T> {
+impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F> + Sub<F,Output=F>> Vec2<F> {
     #[inline]
-    pub fn reject_onto(&self, axis: Vec2<T>) -> Vec2<T> {
+    pub fn reject_onto(&self, axis: Vec2<F>) -> Vec2<F> {
         *self - self.project_onto(axis)
     }
 }
-impl<T: Copy + Mul<T,Output=T> + Div<T,Output=T> + Add<T,Output=T> + Sub<T,Output=T>> Vec3<T> {
+impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F> + Sub<F,Output=F>> Vec3<F> {
     #[inline]
-    pub fn reject_onto(&self, axis: Vec3<T>) -> Vec3<T> {
+    pub fn reject_onto(&self, axis: Vec3<F>) -> Vec3<F> {
         *self - self.project_onto(axis)
     }
 }
-impl<T: Copy + Mul<T,Output=T> + Div<T,Output=T> + Add<T,Output=T> + Sub<T,Output=T>> Vec4<T> {
+impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F> + Sub<F,Output=F>> Vec4<F> {
     #[inline]
-    pub fn reject_onto(&self, axis: Vec4<T>) -> Vec4<T> {
+    pub fn reject_onto(&self, axis: Vec4<F>) -> Vec4<F> {
         *self - self.project_onto(axis)
     }
 }

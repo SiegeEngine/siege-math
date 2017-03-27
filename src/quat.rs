@@ -9,29 +9,29 @@ use super::Vec3;
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct AxisAngle<T> {
-    pub axis: Vec3<T>,
-    pub angle: T,
+pub struct AxisAngle<F> {
+    pub axis: Vec3<F>,
+    pub angle: F,
 }
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct Quat<T> {
-    pub x: T,
-    pub y: T,
-    pub z: T,
-    pub w: T,
+pub struct Quat<F> {
+    pub x: F,
+    pub y: F,
+    pub z: F,
+    pub w: F,
 }
 
 /*
-impl<T> From<AxisAngle<T>> for Quat<T> {
-    fn from(aa: AxisAngle<T>) -> Quat<T> {
+impl<F> From<AxisAngle<F>> for Quat<F> {
+    fn from(aa: AxisAngle<F>) -> Quat<F> {
     }
 }
 
-impl<T> From<Quat<T>> for AxisAngle<T> {
-    fn from(q: Quat<T>) -> AxisAngle<T> {
+impl<F> From<Quat<F>> for AxisAngle<F> {
+    fn from(q: Quat<F>) -> AxisAngle<F> {
     }
 }
 */
