@@ -216,6 +216,28 @@ macro_rules! impl_vector {
                 }
             }
         }
+        impl Mul<$VecN<f32>> for f32 {
+            type Output = $VecN<f32>;
+
+            #[inline]
+            fn mul(self, rhs: $VecN<f32>) -> $VecN<f32> {
+                $VecN {
+                    $first: self * rhs.$first,
+                    $($field: self * rhs.$field),*
+                }
+            }
+        }
+        impl Mul<$VecN<f64>> for f64 {
+            type Output = $VecN<f64>;
+
+            #[inline]
+            fn mul(self, rhs: $VecN<f64>) -> $VecN<f64> {
+                $VecN {
+                    $first: self * rhs.$first,
+                    $($field: self * rhs.$field),*
+                }
+            }
+        }
 
         impl<T: Copy + MulAssign<T>> MulAssign<T> for $VecN<T> {
             #[inline]
