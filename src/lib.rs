@@ -8,7 +8,7 @@ extern crate float_cmp;
 
 pub mod vector;
 pub use self::vector::{Vec2, Vec3, Vec4,
-                       NVec2, NVec3, NVec4};
+                       Direction2, Direction3, Point2, Point3};
 
 pub mod matrix;
 pub use self::matrix::{Mat2, Mat3, Mat4};

@@ -1,5 +1,5 @@
 
-use num_traits::identities::Zero;
+use num_traits::identities::{Zero, One};
 use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
                Add, AddAssign, Sub, SubAssign};
 use std::default::Default;
@@ -31,9 +31,7 @@ pub struct Vec4<F> {
     pub w: F,
 }
 
-pub struct NVec2<F>(Vec2<F>);
-pub struct NVec3<F>(Vec3<F>);
-pub struct NVec4<F>(Vec4<F>);
+// -- indexing ----------------------------------------------------------------
 
 impl<F> Index<usize> for Vec2<F> {
     type Output = F;
@@ -113,6 +111,8 @@ impl<F> IndexMut<usize> for Vec4<F> {
     }
 }
 
+// -- dropping a dimension ----------------------------------------------------
+
 impl<F: Copy> Vec3<F> {
     #[inline]
     pub fn truncate_n(&self, n: usize) -> Vec2<F> {
@@ -122,6 +122,21 @@ impl<F: Copy> Vec3<F> {
             2 => Vec2::new(self.x, self.y),
             _ => panic!("Index out of bounds for Vec3"),
         }
+    }
+}
+
+impl<F: Copy> Vec3<F> {
+    #[inline]
+    pub fn truncate_x(&self) -> Vec2<F> {
+        Vec2::new(self.y, self.z)
+    }
+    #[inline]
+    pub fn truncate_y(&self) -> Vec2<F> {
+        Vec2::new(self.x, self.z)
+    }
+    #[inline]
+    pub fn truncate_z(&self) -> Vec2<F> {
+        Vec2::new(self.x, self.y)
     }
 }
 
@@ -138,38 +153,159 @@ impl<F: Copy> Vec4<F> {
     }
 }
 
+impl<F: Copy> Vec4<F> {
+    #[inline]
+    pub fn truncate_x(&self) -> Vec3<F> {
+        Vec3::new(self.y, self.z, self.w)
+    }
+    #[inline]
+    pub fn truncate_y(&self) -> Vec3<F> {
+        Vec3::new(self.x, self.z, self.w)
+    }
+    #[inline]
+    pub fn truncate_z(&self) -> Vec3<F> {
+        Vec3::new(self.x, self.y, self.w)
+    }
+    #[inline]
+    pub fn truncate_w(&self) -> Vec3<F> {
+        Vec3::new(self.x, self.y, self.z)
+    }
+}
+
+// -- encoded meaning ---------------------------------------------------------
+
+/// Direction vector in 2-dimensions (normalized)
+pub struct Direction2<F>(Vec2<F>);
+
+/// Direction vector in 3-dimensions (normalized)
+pub struct Direction3<F>(Vec3<F>);
+
+/// Point vector in 2-dimensions
+pub struct Point2<F>(Vec2<F>);
+
+/// Point vector in 3-dimensions
+pub struct Point3<F>(Vec3<F>);
+
+impl<F> From<Point2<F>> for Vec2<F> {
+    fn from(v: Point2<F>) -> Vec2<F> {
+        v.0
+    }
+}
+impl<F> From<Point3<F>> for Vec3<F> {
+    fn from(v: Point3<F>) -> Vec3<F> {
+        v.0
+    }
+}
+impl<F: One> From<Point3<F>> for Vec4<F> {
+    fn from(v: Point3<F>) -> Vec4<F> {
+        Vec4::new(v.0.x, v.0.y, v.0.z, F::one())
+    }
+}
+
+impl<F> From<Direction2<F>> for Vec2<F> {
+    fn from(v: Direction2<F>) -> Vec2<F> {
+        v.0
+    }
+}
+impl<F> From<Direction3<F>> for Vec3<F> {
+    fn from(v: Direction3<F>) -> Vec3<F> {
+        v.0
+    }
+}
+impl<F: Zero> From<Direction3<F>> for Vec4<F> {
+    fn from(v: Direction3<F>) -> Vec4<F> {
+        Vec4::new(v.0.x, v.0.y, v.0.z, F::zero())
+    }
+}
+
+impl<F> From<Vec2<F>> for Point2<F> {
+    fn from(v: Vec2<F>) -> Point2<F> {
+        Point2(v)
+    }
+}
+impl<F> From<Vec3<F>> for Point3<F> {
+    fn from(v: Vec3<F>) -> Point3<F> {
+        Point3(v)
+    }
+}
+impl From<Vec2<f32>> for Direction2<f32> {
+    fn from(mut v: Vec2<f32>) -> Direction2<f32> {
+        let mag = v.magnitude();
+        v.x /= mag;
+        v.y /= mag;
+        Direction2(v)
+    }
+}
+impl From<Vec2<f64>> for Direction2<f64> {
+    fn from(mut v: Vec2<f64>) -> Direction2<f64> {
+        let mag = v.magnitude();
+        v.x /= mag;
+        v.y /= mag;
+        Direction2(v)
+    }
+}
+impl From<Vec3<f32>> for Direction3<f32> {
+    fn from(mut v: Vec3<f32>) -> Direction3<f32> {
+        let mag = v.magnitude();
+        v.x /= mag;
+        v.y /= mag;
+        v.z /= mag;
+        Direction3(v)
+    }
+}
+impl From<Vec3<f64>> for Direction3<f64> {
+    fn from(mut v: Vec3<f64>) -> Direction3<f64> {
+        let mag = v.magnitude();
+        v.x /= mag;
+        v.y /= mag;
+        v.z /= mag;
+        Direction3(v)
+    }
+}
+
+impl Point3<f32> {
+    #[allow(dead_code)]
+    #[inline]
+    fn from_vec4(v: Vec4<f32>) -> Option<Point3<f32>> {
+        if v.w == 0.0 { return None; }
+        Some(Point3(Vec3::new(v.x/v.w, v.y/v.w, v.z/v.w)))
+    }
+}
+impl Point3<f64> {
+    #[allow(dead_code)]
+    #[inline]
+    fn from_vec4(v: Vec4<f64>) -> Option<Point3<f64>> {
+        if v.w == 0.0 { return None; }
+        Some(Point3(Vec3::new(v.x/v.w, v.y/v.w, v.z/v.w)))
+    }
+}
+
+impl Direction3<f32> {
+    #[allow(dead_code)]
+    #[inline]
+    fn from_vec4(v: Vec4<f32>) -> Option<Direction3<f32>> {
+        if v.w != 0.0 { return None; }
+        Some(Direction3(v.truncate_w()))
+    }
+}
+impl Direction3<f64> {
+    #[allow(dead_code)]
+    #[inline]
+    fn from_vec4(v: Vec4<f64>) -> Option<Direction3<f64>> {
+        if v.w != 0.0 { return None; }
+        Some(Direction3(v.truncate_w()))
+    }
+}
+
+// ----------------------------------------------------------------------------
+
 macro_rules! impl_vector {
-    ($VecN:ident $NVecN:ident { $first:ident, $($field:ident),* }) => {
+    ($VecN:ident { $first:ident, $($field:ident),* }) => {
         impl<F> $VecN<F> {
             /// Construct a new vector
             #[inline]
             pub fn new($first: F, $($field: F),*) -> $VecN<F> {
                 $VecN { $first: $first, $($field: $field),* }
-            }
-        }
-
-        impl From<$VecN<f32>> for $NVecN<f32> {
-            fn from(mut input: $VecN<f32>) -> $NVecN<f32>
-            {
-                input.as_normal()
-            }
-        }
-        impl From<$VecN<f64>> for $NVecN<f64> {
-            fn from(mut input: $VecN<f64>) -> $NVecN<f64>
-            {
-                input.as_normal()
-            }
-        }
-        impl From<$NVecN<f32>> for $VecN<f32> {
-            fn from(input: $NVecN<f32>) -> $VecN<f32>
-            {
-                input.0
-            }
-        }
-        impl From<$NVecN<f64>> for $VecN<f64> {
-            fn from(input: $NVecN<f64>) -> $VecN<f64>
-            {
-                input.0
             }
         }
 
@@ -202,15 +338,6 @@ macro_rules! impl_vector {
                 // rsqrt is faster than sqrt (but is approximate)
                 // self.squared_magnitude().rsqrt()
             }
-
-            #[inline]
-            pub fn as_normal(&mut self) -> $NVecN<f32> {
-                let mag = self.magnitude();
-                $NVecN($VecN {
-                    $first: self.$first / mag,
-                    $($field: self.$field / mag),*
-                })
-            }
         }
 
         impl $VecN<f64> {
@@ -220,15 +347,6 @@ macro_rules! impl_vector {
                 // FIXME: once simd is part of std and stable, use it
                 // rsqrt is faster than sqrt (but is approximate)
                 // self.squared_magnitude().rsqrt()
-            }
-
-            #[inline]
-            pub fn as_normal(&mut self) -> $NVecN<f64> {
-                let mag = self.magnitude();
-                $NVecN($VecN {
-                    $first: self.$first / mag,
-                    $($field: self.$field / mag),*
-                })
             }
         }
 
@@ -353,12 +471,30 @@ macro_rules! impl_vector {
                     $(+ self.$field * rhs.$field)*
             }
         }
+
+        impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F>> $VecN<F> {
+            #[inline]
+            pub fn project_onto(&self, axis: $VecN<F>) -> $VecN<F> {
+                axis * (self.dot(axis) / axis.dot(axis))
+            }
+        }
+
+        impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F> + Sub<F,Output=F>>
+            $VecN<F>
+        {
+            #[inline]
+            pub fn reject_onto(&self, axis: $VecN<F>) -> $VecN<F> {
+                *self - self.project_onto(axis)
+            }
+        }
     }
 }
 
-impl_vector!(Vec2 NVec2 { x, y });
-impl_vector!(Vec3 NVec3 { x, y, z });
-impl_vector!(Vec4 NVec4 { x, y, z, w });
+impl_vector!(Vec2 { x, y });
+impl_vector!(Vec3 { x, y, z });
+impl_vector!(Vec4 { x, y, z, w });
+
+// ----------------------------------------------------------------------------
 
 impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F>> Vec3<F> {
     #[inline]
@@ -378,43 +514,7 @@ impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F> + Add<F,Output=F>> Vec3<F> {
     }
 }
 
-impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F>> Vec2<F> {
-    #[inline]
-    pub fn project_onto(&self, axis: Vec2<F>) -> Vec2<F> {
-        axis * (self.dot(axis) / axis.dot(axis))
-    }
-}
-impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F>> Vec3<F> {
-    #[inline]
-    pub fn project_onto(&self, axis: Vec3<F>) -> Vec3<F> {
-        axis * (self.dot(axis) / axis.dot(axis))
-    }
-}
-impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F>> Vec4<F> {
-    #[inline]
-    pub fn project_onto(&self, axis: Vec4<F>) -> Vec4<F> {
-        axis * (self.dot(axis) / axis.dot(axis))
-    }
-}
-
-impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F> + Sub<F,Output=F>> Vec2<F> {
-    #[inline]
-    pub fn reject_onto(&self, axis: Vec2<F>) -> Vec2<F> {
-        *self - self.project_onto(axis)
-    }
-}
-impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F> + Sub<F,Output=F>> Vec3<F> {
-    #[inline]
-    pub fn reject_onto(&self, axis: Vec3<F>) -> Vec3<F> {
-        *self - self.project_onto(axis)
-    }
-}
-impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F> + Sub<F,Output=F>> Vec4<F> {
-    #[inline]
-    pub fn reject_onto(&self, axis: Vec4<F>) -> Vec4<F> {
-        *self - self.project_onto(axis)
-    }
-}
+// ----------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
