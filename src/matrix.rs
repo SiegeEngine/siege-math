@@ -943,6 +943,42 @@ impl Mat3<f64> {
     }
 }
 
+// -- Skew --------------------------------------------------------------------
+
+impl Mat3<f32> {
+    /// Skew by give given angle in the given direction a, based on the projected
+    /// length along the proj direction.  direction and proj MUST BE PERPENDICULAR
+    /// or else results are undefined.
+    pub fn skew(angle: f32, a: NVec3<f32>, proj: NVec3<f32>) -> Mat3<f32> {
+        let a: Vec3<f32> = From::from(a);
+        let b: Vec3<f32> = From::from(proj);
+        let t = angle.tan();
+        let x: f32 = a.x * t;
+        let y: f32 = a.y * t;
+        let z: f32 = a.z * t;
+        Mat3::new(x * b.x + 1.0, x * b.y,       x * b.z,
+                  y * b.x,       y * b.y + 1.0, y * b.z,
+                  z * b.x,       z * b.y,       z * b.z + 1.0)
+    }
+}
+
+impl Mat3<f64> {
+    /// Skew by give given angle in the given direction a, based on the projected
+    /// length along the proj direction.  direction and proj MUST BE PERPENDICULAR
+    /// or else results are undefined.
+    pub fn skew(angle: f64, a: NVec3<f64>, proj: NVec3<f64>) -> Mat3<f64> {
+        let a: Vec3<f64> = From::from(a);
+        let b: Vec3<f64> = From::from(proj);
+        let t = angle.tan();
+        let x: f64 = a.x * t;
+        let y: f64 = a.y * t;
+        let z: f64 = a.z * t;
+        Mat3::new(x * b.x + 1.0, x * b.y,       x * b.z,
+                  y * b.x,       y * b.y + 1.0, y * b.z,
+                  z * b.x,       z * b.y,       z * b.z + 1.0)
+    }
+}
+
 // ----------------------------------------------------------------------------
 
 #[cfg(test)]
