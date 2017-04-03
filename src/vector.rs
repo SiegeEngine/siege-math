@@ -297,6 +297,62 @@ impl Direction3<f64> {
     }
 }
 
+// -- Point operations --------------------------------------------------------
+
+// point + vector = point
+impl<F: Add<Output=F>> Add<Vec2<F>> for Point2<F> {
+    type Output = Point2<F>;
+
+    #[inline]
+    fn add(self, other: Vec2<F>) -> Point2<F> {
+        Point2(self.0 + other)
+    }
+}
+impl<F: Add<Output=F>> Add<Vec3<F>> for Point3<F> {
+    type Output = Point3<F>;
+
+    #[inline]
+    fn add(self, other: Vec3<F>) -> Point3<F> {
+        Point3(self.0 + other)
+    }
+}
+
+// point - vector = point
+impl<F: Sub<Output=F>> Sub<Vec2<F>> for Point2<F> {
+    type Output = Point2<F>;
+
+    #[inline]
+    fn sub(self, other: Vec2<F>) -> Point2<F> {
+        Point2(self.0 - other)
+    }
+}
+impl<F: Sub<Output=F>> Sub<Vec3<F>> for Point3<F> {
+    type Output = Point3<F>;
+
+    #[inline]
+    fn sub(self, other: Vec3<F>) -> Point3<F> {
+        Point3(self.0 - other)
+    }
+}
+
+// point - point = vector
+impl<F: Sub<Output=F>> Sub<Point2<F>> for Point2<F> {
+    type Output = Vec2<F>;
+
+    #[inline]
+    fn sub(self, other: Point2<F>) -> Vec2<F> {
+        self.0 - other.0
+    }
+}
+impl<F: Sub<Output=F>> Sub<Point3<F>> for Point3<F> {
+    type Output = Vec3<F>;
+
+    #[inline]
+    fn sub(self, other: Point3<F>) -> Vec3<F> {
+        self.0 - other.0
+    }
+}
+
 // ----------------------------------------------------------------------------
 
 macro_rules! impl_vector {
