@@ -1,4 +1,5 @@
 
+/*
 use num_traits::identities::Zero;
 use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
                Add, AddAssign, Sub, SubAssign};
@@ -13,6 +14,8 @@ pub struct AxisAngle<F> {
     pub axis: Vec3<F>,
     pub angle: F,
 }
+
+ */
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
