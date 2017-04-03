@@ -175,16 +175,16 @@ impl<F: Copy> Vec4<F> {
 // -- encoded meaning ---------------------------------------------------------
 
 /// Direction vector in 2-dimensions (normalized)
-pub struct Direction2<F>(Vec2<F>);
+pub struct Direction2<F>(pub Vec2<F>);
 
 /// Direction vector in 3-dimensions (normalized)
-pub struct Direction3<F>(Vec3<F>);
+pub struct Direction3<F>(pub Vec3<F>);
 
 /// Point vector in 2-dimensions
-pub struct Point2<F>(Vec2<F>);
+pub struct Point2<F>(pub Vec2<F>);
 
 /// Point vector in 3-dimensions
-pub struct Point3<F>(Vec3<F>);
+pub struct Point3<F>(pub Vec3<F>);
 
 impl<F> From<Point2<F>> for Vec2<F> {
     fn from(v: Point2<F>) -> Vec2<F> {
