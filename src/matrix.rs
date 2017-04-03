@@ -199,6 +199,17 @@ impl<F: Zero + One> Mat4<F> {
             p: Vec4::new(  pos.0.x,   pos.0.y,   pos.0.z, F::one())
         }
     }
+
+    #[inline]
+    pub fn from_mat3(mat3: Mat3<F>, pos: Point3<F>) -> Mat4<F>
+    {
+        Mat4 {  // looks transposed because stored column-major
+            x: Vec4::new(mat3.x.x, mat3.x.y, mat3.x.z, F::zero()),
+            y: Vec4::new(mat3.y.x, mat3.y.y, mat3.y.z, F::zero()),
+            z: Vec4::new(mat3.z.x, mat3.z.y, mat3.z.z, F::zero()),
+            p: Vec4::new( pos.0.x,  pos.0.y,  pos.0.z, F::one())
+        }
+    }
 }
 
 // -- impl Default ------------------------------------------------------------
