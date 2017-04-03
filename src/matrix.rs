@@ -706,6 +706,22 @@ impl<F: Copy + PartialEq + Neg<Output=F>> Mat4<F> {
     }
 }
 
+// -- mat4 components ---------------------------------------------------------
+
+impl<F: Copy> Mat4<F> {
+    pub fn get_translation(&self) -> Point3<F>
+    {
+        Point3(self.p.truncate_w())
+    }
+}
+
+impl<F: One> Mat4<F> {
+    pub fn set_translation(&mut self, p: Point3<F>)
+    {
+        self.p = From::from(p);
+    }
+}
+
 // -- rotation matrices -------------------------------------------------------
 
 impl<F: Float> Mat2<F> {
