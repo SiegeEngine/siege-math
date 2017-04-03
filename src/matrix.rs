@@ -3,7 +3,7 @@ use num_traits::identities::{Zero, One};
 use num_traits::float::Float;
 use std::ops::{Index, IndexMut, Mul, Add, Neg, Div, Sub};
 use std::default::Default;
-use super::vector::{Vec2, Vec3, Vec4, Direction2, Direction3, Point2, Point3};
+use super::vector::{Vec2, Vec3, Vec4, Direction3, Point3};
 
 // NOTE: we store matrices in column-major order, which means we pre-multiply.
 // This is traditional so matrices directly copied to the GPU will work with
@@ -184,6 +184,20 @@ impl<F> Mat4<F> {
     pub fn from_cols(x: Vec4<F>, y: Vec4<F>, z: Vec4<F>, p: Vec4<F>) -> Mat4<F>
     {
         Mat4 { x: x, y: y, z: z, p: p }
+    }
+}
+
+impl<F: Zero + One> Mat4<F> {
+    #[inline]
+    pub fn from_components(x_dir: Direction3<F>, y_dir: Direction3<F>, z_dir: Direction3<F>,
+                           pos: Point3<F>) -> Mat4<F>
+    {
+        Mat4 {  // looks transposed because stored column-major
+            x: Vec4::new(x_dir.0.x, x_dir.0.y, x_dir.0.z, F::zero()),
+            y: Vec4::new(y_dir.0.x, y_dir.0.y, y_dir.0.z, F::zero()),
+            z: Vec4::new(z_dir.0.x, z_dir.0.y, z_dir.0.z, F::zero()),
+            p: Vec4::new(  pos.0.x,   pos.0.y,   pos.0.z, F::one())
+        }
     }
 }
 
