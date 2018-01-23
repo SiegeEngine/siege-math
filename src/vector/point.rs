@@ -15,6 +15,21 @@ pub struct Point2<F>(pub Vec2<F>);
 #[derive(Serialize, Deserialize)]
 pub struct Point3<F>(pub Vec3<F>);
 
+
+impl<F> Point2<F> {
+    #[inline]
+    pub fn new(x: F, y: F) -> Point2<F> {
+        Point2(Vec2::new(x,y))
+    }
+}
+
+impl<F> Point3<F> {
+    #[inline]
+    pub fn new(x: F, y: F, z: F) -> Point3<F> {
+        Point3(Vec3::new(x,y,z))
+    }
+}
+
 impl<F> Deref for Point2<F> {
     type Target = Vec2<F>;
 
@@ -77,7 +92,6 @@ impl Point3<f64> {
     }
 }
 
-// point + vector = point
 impl<F: Add<Output=F>> Add<Vec2<F>> for Point2<F> {
     type Output = Point2<F>;
 
