@@ -4,6 +4,7 @@ use num_traits::float::Float;
 use std::ops::{Index, IndexMut, Mul, Add, Neg, Div, Sub};
 use std::default::Default;
 use super::vector::{Vec2, Vec3, Vec4, Direction3, Point3};
+use super::Angle;
 
 // NOTE: we store matrices in column-major order, which means we pre-multiply.
 // This is traditional so matrices directly copied to the GPU will work with
@@ -726,8 +727,8 @@ impl<F: One> Mat4<F> {
 
 impl<F: Float> Mat2<F> {
     #[inline]
-    pub fn from_angle(theta: F) -> Mat2<F> {
-        let (s, c) = theta.sin_cos();
+    pub fn from_angle(theta: Angle<F>) -> Mat2<F> {
+        let (s, c) = theta.as_radians().sin_cos();
         Mat2 {
             x: Vec2::new(c, s),
             y: Vec2::new(-s, c),
@@ -737,24 +738,24 @@ impl<F: Float> Mat2<F> {
 
 impl<F: Float + One + Zero> Mat3<F> {
     #[inline]
-    pub fn from_angle_x(theta: F) -> Mat3<F> {
-        let (s, c) = theta.sin_cos();
+    pub fn from_angle_x(theta: Angle<F>) -> Mat3<F> {
+        let (s, c) = theta.as_radians().sin_cos();
         Mat3::new( F::one(),  F::zero(), F::zero(),
                    F::zero(), c,         -s,
                    F::zero(), s,         c )
     }
 
     #[inline]
-    pub fn from_angle_y(theta: F) -> Mat3<F> {
-        let (s, c) = theta.sin_cos();
+    pub fn from_angle_y(theta: Angle<F>) -> Mat3<F> {
+        let (s, c) = theta.as_radians().sin_cos();
         Mat3::new( c,         F::zero(), s,
                    F::zero(), F::one(),  F::zero(),
                    -s,        F::zero(), c )
     }
 
     #[inline]
-    pub fn from_angle_z(theta: F) -> Mat3<F> {
-        let (s, c) = theta.sin_cos();
+    pub fn from_angle_z(theta: Angle<F>) -> Mat3<F> {
+        let (s, c) = theta.as_radians().sin_cos();
         Mat3::new(  c,        -s,         F::zero(),
                     s,         c,         F::zero(),
                     F::zero(), F::zero(), F::one() )
@@ -764,12 +765,12 @@ impl<F: Float + One + Zero> Mat3<F> {
 impl Mat3<f32> {
     // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
     //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(axis: Direction3<f32>, theta: f32) -> Mat3<f32> {
+    pub fn rotate_axis_angle(axis: Direction3<f32>, theta: Angle<f32>) -> Mat3<f32> {
         let axis: Vec3<f32> = From::from(axis);
         let x = &axis.x;
         let y = &axis.y;
         let z = &axis.z;
-        let (s, c) = theta.sin_cos();
+        let (s, c) = theta.as_radians().sin_cos();
         let ic = 1.0 - c;
         Mat3::new( x*x*ic + c   , x*y*ic - z*s ,  x*z*ic + y*s,
                    y*x*ic + z*s , y*y*ic + c   ,  y*z*ic - x*s,
@@ -780,12 +781,12 @@ impl Mat3<f32> {
 impl Mat3<f64> {
     // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
     //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(axis: Direction3<f64>, theta: f64) -> Mat3<f64> {
+    pub fn rotate_axis_angle(axis: Direction3<f64>, theta: Angle<f64>) -> Mat3<f64> {
         let axis: Vec3<f64> = From::from(axis);
         let x = &axis.x;
         let y = &axis.y;
         let z = &axis.z;
-        let (s, c) = theta.sin_cos();
+        let (s, c) = theta.as_radians().sin_cos();
         let ic = 1.0 - c;
         Mat3::new( x*x*ic + c   , x*y*ic - z*s ,  x*z*ic + y*s,
                    y*x*ic + z*s , y*y*ic + c   ,  y*z*ic - x*s,
@@ -795,8 +796,8 @@ impl Mat3<f64> {
 
 impl<F: Float + One + Zero> Mat4<F> {
     #[inline]
-    pub fn from_angle_x(theta: F) -> Mat4<F> {
-        let (s, c) = theta.sin_cos();
+    pub fn from_angle_x(theta: Angle<F>) -> Mat4<F> {
+        let (s, c) = theta.as_radians().sin_cos();
         Mat4::new( F::one(),  F::zero(), F::zero(), F::zero(),
                    F::zero(), c,        -s,         F::zero(),
                    F::zero(), s,         c,         F::zero(),
@@ -804,8 +805,8 @@ impl<F: Float + One + Zero> Mat4<F> {
     }
 
     #[inline]
-    pub fn from_angle_y(theta: F) -> Mat4<F> {
-        let (s, c) = theta.sin_cos();
+    pub fn from_angle_y(theta: Angle<F>) -> Mat4<F> {
+        let (s, c) = theta.as_radians().sin_cos();
         Mat4::new( c        , F::zero(),         s, F::zero(),
                    F::zero(), F::one(),  F::zero(), F::zero(),
                    -s       , F::zero(),         c, F::zero(),
@@ -813,8 +814,8 @@ impl<F: Float + One + Zero> Mat4<F> {
     }
 
     #[inline]
-    pub fn from_angle_z(theta: F) -> Mat4<F> {
-        let (s, c) = theta.sin_cos();
+    pub fn from_angle_z(theta: Angle<F>) -> Mat4<F> {
+        let (s, c) = theta.as_radians().sin_cos();
         Mat4::new( c        ,         s, F::zero(), F::zero(),
                    -s       ,         c, F::zero(), F::zero(),
                    F::zero(), F::zero(), F::one(),  F::zero(),
@@ -825,12 +826,12 @@ impl<F: Float + One + Zero> Mat4<F> {
 impl Mat4<f32> {
     // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
     //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(axis: Direction3<f32>, theta: f32) -> Mat4<f32> {
+    pub fn rotate_axis_angle(axis: Direction3<f32>, theta: Angle<f32>) -> Mat4<f32> {
         let axis: Vec3<f32> = From::from(axis);
         let x = &axis.x;
         let y = &axis.y;
         let z = &axis.z;
-        let (s, c) = theta.sin_cos();
+        let (s, c) = theta.as_radians().sin_cos();
         let ic = 1.0 - c;
         Mat4::new( x*x*ic + c  , x*y*ic - z*s, x*z*ic + y*s,  0.0,
                    y*x*ic + z*s, y*y*ic + c  , y*z*ic - x*s,  0.0,
@@ -842,12 +843,12 @@ impl Mat4<f32> {
 impl Mat4<f64> {
     // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
     //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(axis: Direction3<f64>, theta: f64) -> Mat4<f64> {
+    pub fn rotate_axis_angle(axis: Direction3<f64>, theta: Angle<f64>) -> Mat4<f64> {
         let axis: Vec3<f64> = From::from(axis);
         let x = &axis.x;
         let y = &axis.y;
         let z = &axis.z;
-        let (s, c) = theta.sin_cos();
+        let (s, c) = theta.as_radians().sin_cos();
         let ic = 1.0 - c;
         Mat4::new( x*x*ic + c  , x*y*ic - z*s, x*z*ic + y*s,  0.0,
                    y*x*ic + z*s, y*y*ic + c  , y*z*ic - x*s,  0.0,
