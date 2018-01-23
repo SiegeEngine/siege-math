@@ -1,4 +1,6 @@
 
+use std::ops::{Mul, Div, Add, Sub};
+
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
@@ -59,5 +61,37 @@ impl Angle<f64> {
 
     pub fn as_cycles(&self) -> f64 {
         self.0 / (2.0 * ::std::f64::consts::PI)
+    }
+}
+
+impl<F: Mul<F,Output=F>> Mul<F> for Angle<F> {
+    type Output = Angle<F>;
+
+    fn mul(self, rhs: F) -> Angle<F> {
+        Angle(self.0 * rhs)
+    }
+}
+
+impl<F: Div<F,Output=F>> Div<F> for Angle<F> {
+    type Output = Angle<F>;
+
+    fn div(self, rhs: F) -> Angle<F> {
+        Angle(self.0 / rhs)
+    }
+}
+
+impl<F: Add<F,Output=F>> Add<Angle<F>> for Angle<F> {
+    type Output = Angle<F>;
+
+    fn add(self, rhs: Angle<F>) -> Angle<F> {
+        Angle(self.0 + rhs.0)
+    }
+}
+
+impl<F: Sub<F,Output=F>> Sub<Angle<F>> for Angle<F> {
+    type Output = Angle<F>;
+
+    fn sub(self, rhs: Angle<F>) -> Angle<F> {
+        Angle(self.0 - rhs.0)
     }
 }
