@@ -397,6 +397,20 @@ impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F> + Add<F,Output=F>> Vec3<F> {
 
 // ----------------------------------------------------------------------------
 
+impl<F> From<Vec4<F>> for Vec3<F> {
+    fn from(v: Vec4<F>) -> Vec3<F> {
+        Vec3 { x: v.x, y: v.y, z: v.z }
+    }
+}
+
+impl<F> From<Vec3<F>> for Vec2<F> {
+    fn from(v: Vec3<F>) -> Vec2<F> {
+        Vec2 { x: v.x, y: v.y }
+    }
+}
+
+// ----------------------------------------------------------------------------
+
 #[cfg(test)]
 mod tests {
     use float_cmp:: ApproxEqUlps;
