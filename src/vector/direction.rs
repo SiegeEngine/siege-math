@@ -1,6 +1,6 @@
 
 use num_traits::identities::Zero;
-use std::ops::{Deref, Mul, Sub};
+use std::ops::{Deref, Mul, Sub, Add};
 use super::{Vec2, Vec3, Vec4};
 
 /// Direction vector in 2-dimensions (normalized)
@@ -118,8 +118,14 @@ impl Direction3<f64> {
 
 impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F>> Direction3<F> {
     #[inline]
-    pub fn cross(&self, rhs: Vec3<F>) -> Vec3<F> {
-        self.0.cross(rhs)
+    pub fn cross(&self, rhs: Direction3<F>) -> Vec3<F> {
+        self.0.cross(rhs.0)
     }
 }
 
+impl<F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Direction3<F> {
+    #[inline]
+    pub fn dot(&self, rhs: Direction3<F>) -> F {
+        self.0.dot(rhs.0)
+    }
+}
