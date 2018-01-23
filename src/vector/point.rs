@@ -74,6 +74,11 @@ impl<F> From<Vec3<F>> for Point3<F> {
         Point3(v)
     }
 }
+impl<F> From<Vec4<F>> for Point3<F> {
+    fn from(v: Vec4<F>) -> Point3<F> {
+        Point3(From::from(v))
+    }
+}
 
 impl Point3<f32> {
     #[allow(dead_code)]
