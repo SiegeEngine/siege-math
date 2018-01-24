@@ -1024,6 +1024,51 @@ impl Mat3<f64> {
 }
 
 // ----------------------------------------------------------------------------
+// Convert between f32 and f64
+
+impl From<Mat3<f32>> for Mat3<f64> {
+    fn from(m: Mat3<f32>) -> Mat3<f64> {
+        Mat3 {
+            x: Vec3 { x: m.x.x as f64, y: m.x.y as f64, z: m.x.z as f64 },
+            y: Vec3 { x: m.y.x as f64, y: m.y.y as f64, z: m.y.z as f64 },
+            z: Vec3 { x: m.z.x as f64, y: m.z.y as f64, z: m.z.z as f64 },
+        }
+    }
+}
+
+impl From<Mat3<f64>> for Mat3<f32> {
+    fn from(m: Mat3<f64>) -> Mat3<f32> {
+        Mat3 {
+            x: Vec3 { x: m.x.x as f32, y: m.x.y as f32, z: m.x.z as f32 },
+            y: Vec3 { x: m.y.x as f32, y: m.y.y as f32, z: m.y.z as f32 },
+            z: Vec3 { x: m.z.x as f32, y: m.z.y as f32, z: m.z.z as f32 },
+        }
+    }
+}
+
+impl From<Mat4<f32>> for Mat4<f64> {
+    fn from(m: Mat4<f32>) -> Mat4<f64> {
+        Mat4 {
+            x: Vec4 { x: m.x.x as f64, y: m.x.y as f64, z: m.x.z as f64, w: m.x.w as f64 },
+            y: Vec4 { x: m.y.x as f64, y: m.y.y as f64, z: m.y.z as f64, w: m.y.w as f64 },
+            z: Vec4 { x: m.z.x as f64, y: m.z.y as f64, z: m.z.z as f64, w: m.z.w as f64 },
+            p: Vec4 { x: m.p.x as f64, y: m.p.y as f64, z: m.p.z as f64, w: m.p.w as f64 },
+        }
+    }
+}
+
+impl From<Mat4<f64>> for Mat4<f32> {
+    fn from(m: Mat4<f64>) -> Mat4<f32> {
+        Mat4 {
+            x: Vec4 { x: m.x.x as f32, y: m.x.y as f32, z: m.x.z as f32, w: m.x.w as f32 },
+            y: Vec4 { x: m.y.x as f32, y: m.y.y as f32, z: m.y.z as f32, w: m.y.w as f32 },
+            z: Vec4 { x: m.z.x as f32, y: m.z.y as f32, z: m.z.z as f32, w: m.z.w as f32 },
+            p: Vec4 { x: m.p.x as f32, y: m.p.y as f32, z: m.p.z as f32, w: m.p.w as f32 },
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
