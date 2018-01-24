@@ -409,6 +409,42 @@ impl<F> From<Vec3<F>> for Vec2<F> {
     }
 }
 
+impl From<Vec2<f64>> for Vec2<f32> {
+    fn from(v: Vec2<f64>) -> Vec2<f32> {
+        Vec2 { x: v.x as f32, y: v.y as f32 }
+    }
+}
+
+impl From<Vec2<f32>> for Vec2<f64> {
+    fn from(v: Vec2<f32>) -> Vec2<f64> {
+        Vec2 { x: v.x as f64, y: v.y as f64 }
+    }
+}
+
+impl From<Vec3<f64>> for Vec3<f32> {
+    fn from(v: Vec3<f64>) -> Vec3<f32> {
+        Vec3 { x: v.x as f32, y: v.y as f32, z: v.z as f32 }
+    }
+}
+
+impl From<Vec3<f32>> for Vec3<f64> {
+    fn from(v: Vec3<f32>) -> Vec3<f64> {
+        Vec3 { x: v.x as f64, y: v.y as f64, z: v.z as f64 }
+    }
+}
+
+impl From<Vec4<f64>> for Vec4<f32> {
+    fn from(v: Vec4<f64>) -> Vec4<f32> {
+        Vec4 { x: v.x as f32, y: v.y as f32, z: v.z as f32, w: v.w as f32 }
+    }
+}
+
+impl From<Vec4<f32>> for Vec4<f64> {
+    fn from(v: Vec4<f32>) -> Vec4<f64> {
+        Vec4 { x: v.x as f64, y: v.y as f64, z: v.z as f64, w: v.w as f64 }
+    }
+}
+
 // ----------------------------------------------------------------------------
 
 #[cfg(test)]

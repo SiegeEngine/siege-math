@@ -149,3 +149,27 @@ impl<F: Sub<Output=F>> Sub<Point3<F>> for Point3<F> {
         self.0 - other.0
     }
 }
+
+impl From<Point2<f64>> for Point2<f32> {
+    fn from(p: Point2<f64>) -> Point2<f32> {
+        Point2(From::from(p.0))
+    }
+}
+
+impl From<Point2<f32>> for Point2<f64> {
+    fn from(p: Point2<f32>) -> Point2<f64> {
+        Point2(From::from(p.0))
+    }
+}
+
+impl From<Point3<f64>> for Point3<f32> {
+    fn from(p: Point3<f64>) -> Point3<f32> {
+        Point3(From::from(p.0))
+    }
+}
+
+impl From<Point3<f32>> for Point3<f64> {
+    fn from(p: Point3<f32>) -> Point3<f64> {
+        Point3(From::from(p.0))
+    }
+}
