@@ -15,32 +15,34 @@ use super::Angle;
 // provide a row-major interface (e.g. via the [] operator and the new()
 // function parameter order).  This way the programmer can write matrices
 // in the same order that mathematicians write them.
+// (Subsequently we have made the internals public so that we can define
+//  constant matrices).
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct Mat2<F> {
-    x: Vec2<F>,
-    y: Vec2<F>
+    pub x: Vec2<F>,
+    pub y: Vec2<F>
 }
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct Mat3<F> {
-    x: Vec3<F>,
-    y: Vec3<F>,
-    z: Vec3<F>
+    pub x: Vec3<F>,
+    pub y: Vec3<F>,
+    pub z: Vec3<F>
 }
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct Mat4<F> {
-    x: Vec4<F>,
-    y: Vec4<F>,
-    z: Vec4<F>,
-    p: Vec4<F>
+    pub x: Vec4<F>,
+    pub y: Vec4<F>,
+    pub z: Vec4<F>,
+    pub p: Vec4<F>
 }
 
 // -- impl Index --------------------------------------------------------------
