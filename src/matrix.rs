@@ -1118,7 +1118,7 @@ impl From<Mat4<f64>> for Mat4<f32> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Mat2, Mat3, Mat4};
+    use super::{Mat2, Mat3, Mat4, Angle};
     use super::super::vector::{Vec2, Vec3, Vec4, Direction3};
 
     #[test]
@@ -1283,7 +1283,7 @@ mod tests {
     #[test]
     fn test_axis_angle() {
         let axis: Direction3<f32> = From::from(Vec3::new(1.0, 0.0, 0.0));
-        let angle = ::std::f32::consts::FRAC_PI_4;
+        let angle = Angle::new_radians(::std::f32::consts::FRAC_PI_4);;
 
         let start: Mat4<f32> = Mat4::new(
             1.0, 0.0, 0.0, 5.0,
@@ -1295,7 +1295,7 @@ mod tests {
 
         let end = &rot * &start;
 
-        let (s, c) = angle.sin_cos();
+        let (s, c) = angle.as_radians().sin_cos();
         // This equality comparison works even with floating point inaccuracies.
         // But ideally we need ULPS comparison functions for vectors and matrices.
         assert_eq!(end, Mat4::new(
