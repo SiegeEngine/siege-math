@@ -987,6 +987,52 @@ impl Mat3<f64> {
     }
 }
 
+impl Mat4<f32> {
+    pub fn get_x_scale(&self) -> f32 {
+        let scale = (self.x.x * self.x.x
+                     + self.y.x * self.y.x
+                     + self.z.x * self.z.x).sqrt();
+        if self.x.x < 0.0 { -scale } else { scale }
+    }
+
+    pub fn get_y_scale(&self) -> f32 {
+        let scale = (self.x.y * self.x.y
+                     + self.y.y * self.y.y
+                     + self.z.y * self.z.y).sqrt();
+        if self.y.y < 0.0 { -scale } else { scale }
+    }
+
+    pub fn get_z_scale(&self) -> f32 {
+        let scale = (self.x.z * self.x.z
+                     + self.y.z * self.y.z
+                     + self.z.z * self.z.z).sqrt();
+        if self.z.z < 0.0 { -scale } else { scale }
+    }
+}
+
+impl Mat4<f64> {
+    pub fn get_x_scale(&self) -> f64 {
+        let scale = (self.x.x * self.x.x
+                     + self.y.x * self.y.x
+                     + self.z.x * self.z.x).sqrt();
+        if self.x.x < 0.0 { -scale } else { scale }
+    }
+
+    pub fn get_y_scale(&self) -> f64 {
+        let scale = (self.x.y * self.x.y
+                     + self.y.y * self.y.y
+                     + self.z.y * self.z.y).sqrt();
+        if self.y.y < 0.0 { -scale } else { scale }
+    }
+
+    pub fn get_z_scale(&self) -> f64 {
+        let scale = (self.x.z * self.x.z
+                     + self.y.z * self.y.z
+                     + self.z.z * self.z.z).sqrt();
+        if self.z.z < 0.0 { -scale } else { scale }
+    }
+}
+
 // -- Skew --------------------------------------------------------------------
 
 impl Mat3<f32> {
