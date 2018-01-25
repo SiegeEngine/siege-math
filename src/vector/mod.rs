@@ -242,6 +242,7 @@ macro_rules! impl_vector {
                 }
             }
         }
+
         impl Mul<$VecN<f32>> for f32 {
             type Output = $VecN<f32>;
 
@@ -317,9 +318,9 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<'a, F: Copy + AddAssign<F>> AddAssign<&'a $VecN<F>> for $VecN<F> {
+        impl<F: Copy + AddAssign<F>> AddAssign<$VecN<F>> for $VecN<F> {
             #[inline]
-            fn add_assign(&mut self, other: &'a $VecN<F>) {
+            fn add_assign(&mut self, other: $VecN<F>) {
                 self.$first += other.$first;
                 $(self.$field += other.$field);*
             }
@@ -337,9 +338,9 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<'a, F: Copy + SubAssign<F>> SubAssign<&'a $VecN<F>> for $VecN<F> {
+        impl<F: Copy + SubAssign<F>> SubAssign<$VecN<F>> for $VecN<F> {
             #[inline]
-            fn sub_assign(&mut self, other: &'a $VecN<F>) {
+            fn sub_assign(&mut self, other: $VecN<F>) {
                 self.$first -= other.$first;
                 $(self.$field -= other.$field);*
             }
