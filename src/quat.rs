@@ -3,13 +3,31 @@ use std::ops::{Add, Sub, Mul,
                AddAssign, SubAssign, MulAssign,
                Neg};
 use std::default::Default;
-use {Vec3, Mat3};
+use {Vec3, Mat3, Direction3};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct Quat<F> {
     pub v: Vec3<F>,
     pub w: F
+}
+
+impl Quat<f32> {
+    pub fn new(direction: Direction3<f32>, w: f32) -> Quat<f32> {
+        Quat {
+            v: From::from(direction),
+            w: w
+        }
+    }
+}
+
+impl Quat<f64> {
+    pub fn new(direction: Direction3<f64>, w: f64) -> Quat<f64> {
+        Quat {
+            v: From::from(direction),
+            w: w
+        }
+    }
 }
 
 impl<F: Default> Default for Quat<F> {
@@ -209,12 +227,12 @@ impl From<Mat3<f32>> for Quat<f32> {
         let w;
         if sum>0.0 {
             w = (sum + 1.0).sqrt() * 0.5;
-            let f = 0.25 / 2.0;
+            let f = 0.25 / w;
             x = (m.z.y - m.y.z) * f;
             y = (m.x.z - m.z.x) * f;
             z = (m.y.x - m.x.y) * f;
         }
-        else if m.x.x > m.y.y && m.x.x > m.z.z {
+        else if (m.x.x > m.y.y) && (m.x.x > m.z.z) {
             x = (m.x.x - m.y.y - m.z.z + 1.0).sqrt() * 0.5;
             let f = 0.25 / x;
             y = (m.y.x + m.x.y) * f;
@@ -226,8 +244,8 @@ impl From<Mat3<f32>> for Quat<f32> {
             y = (m.y.y - m.x.x - m.z.z + 1.0).sqrt() * 0.5;
             let f = 0.25 / y;
             x = (m.y.x + m.x.y) * f;
-            z = (m.x.z + m.z.x) * f;
-            w = (m.z.y - m.y.z) * f;
+            z = (m.z.y + m.y.z) * f;
+            w = (m.x.z - m.z.x) * f;
         }
         else {
             z = (m.z.z - m.x.x - m.y.y + 1.0).sqrt() * 0.5;
@@ -250,7 +268,7 @@ impl From<Mat3<f64>> for Quat<f64> {
         let w;
         if sum>0.0 {
             w = (sum + 1.0).sqrt() * 0.5;
-            let f = 0.25 / 2.0;
+            let f = 0.25 / w;
             x = (m.z.y - m.y.z) * f;
             y = (m.x.z - m.z.x) * f;
             z = (m.y.x - m.x.y) * f;
@@ -267,8 +285,8 @@ impl From<Mat3<f64>> for Quat<f64> {
             y = (m.y.y - m.x.x - m.z.z + 1.0).sqrt() * 0.5;
             let f = 0.25 / y;
             x = (m.y.x + m.x.y) * f;
-            z = (m.x.z + m.z.x) * f;
-            w = (m.z.y - m.y.z) * f;
+            z = (m.z.y + m.y.z) * f;
+            w = (m.x.z - m.z.x) * f;
         }
         else {
             z = (m.z.z - m.x.x - m.y.y + 1.0).sqrt() * 0.5;
@@ -279,5 +297,33 @@ impl From<Mat3<f64>> for Quat<f64> {
         }
 
         Quat { v: Vec3 { x: x, y: y, z: z }, w: w }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use {Quat, Vec3, Mat3, Direction3};
+
+    #[test]
+    fn test_quat_1() {
+        let v = Vec3::<f32>::new(1.0, 0.2, -0.3);
+        let d: Direction3<f32> = From::from(v);
+        let q = Quat::<f32>::new(d, 5.0);
+        println!("q: {:?}", q);
+
+        let m: Mat3<f32> = From::from(q);
+        println!("m: {:?}", m);
+
+        let q2: Quat<f32> = From::from(m);
+        println!("q2: {:?}", q2);
+
+        let xdiff = q.v.x - q2.v.x;
+        let ydiff = q.v.y - q2.v.y;
+        let zdiff = q.v.z - q2.v.z;
+        let wdiff = q.w - q2.w;
+        assert!(-0.000001 < xdiff && xdiff < 0.000001);
+        assert!(-0.000001 < ydiff && ydiff < 0.000001);
+        assert!(-0.000001 < zdiff && zdiff < 0.000001);
+        assert!(-0.000001 < wdiff && wdiff < 0.000001);
     }
 }
