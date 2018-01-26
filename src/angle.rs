@@ -8,7 +8,13 @@ use float_cmp::{Ulps, ApproxEqUlps};
 pub struct Angle<F>(F);
 
 impl<F: Copy> Angle<F> {
+    #[inline]
     pub fn new_radians(radians: F) -> Angle<F>
+    {
+        Angle::<F>::from_radians(radians)
+    }
+
+    pub fn from_radians(radians: F) -> Angle<F>
     {
         Angle(radians)
     }
@@ -19,12 +25,24 @@ impl<F: Copy> Angle<F> {
 }
 
 impl Angle<f32> {
+    #[inline]
     pub fn new_degrees(degrees: f32) -> Angle<f32>
+    {
+        Angle::<f32>::from_degrees(degrees)
+    }
+
+    pub fn from_degrees(degrees: f32) -> Angle<f32>
     {
         Angle(::std::f32::consts::PI * degrees / 180.0)
     }
 
+    #[inline]
     pub fn new_cycles(cycles: f32) -> Angle<f32>
+    {
+        Angle::<f32>::from_cycles(cycles)
+    }
+
+    pub fn from_cycles(cycles: f32) -> Angle<f32>
     {
         Angle(2.0 * ::std::f32::consts::PI * cycles)
     }
@@ -39,12 +57,24 @@ impl Angle<f32> {
 }
 
 impl Angle<f64> {
+    #[inline]
     pub fn new_degrees(degrees: f64) -> Angle<f64>
+    {
+        Angle::<f64>::from_degrees(degrees)
+    }
+
+    pub fn from_degrees(degrees: f64) -> Angle<f64>
     {
         Angle(::std::f64::consts::PI * degrees / 180.0)
     }
 
+    #[inline]
     pub fn new_cycles(cycles: f64) -> Angle<f64>
+    {
+        Angle::<f64>::from_cycles(cycles)
+    }
+
+    pub fn from_cycles(cycles: f64) -> Angle<f64>
     {
         Angle(2.0 * ::std::f64::consts::PI * cycles)
     }
