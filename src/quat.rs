@@ -372,6 +372,8 @@ mod tests {
 
     #[test]
     fn test_quat_mat_conversion() {
+        use float_cmp::ApproxEqUlps;
+
         let v = Vec3::<f32>::new(1.0, 0.2, -0.3);
         let mut q = Quat::<f32>::new(v, 5.0);
         q.normalize();
@@ -385,15 +387,8 @@ mod tests {
         let q2: Quat<f32> = From::from(m);
         let q2c: Quat<f32> = q2.conjugate();
 
-        // FIXME...
-        let xdiff = q.v.x - q2.v.x;
-        let ydiff = q.v.y - q2.v.y;
-        let zdiff = q.v.z - q2.v.z;
-        let wdiff = q.w - q2.w;
-        assert!(-0.000001 < xdiff && xdiff < 0.000001);
-        assert!(-0.000001 < ydiff && ydiff < 0.000001);
-        assert!(-0.000001 < zdiff && zdiff < 0.000001);
-        assert!(-0.000001 < wdiff && wdiff < 0.000001);
+        assert!(q2.approx_eq_ulps(&q, 2) ||
+                q2c.approx_eq_ulps(&q, 2));
     }
 
     /*
