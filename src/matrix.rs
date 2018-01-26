@@ -1283,7 +1283,7 @@ mod tests {
     #[test]
     fn test_axis_angle() {
         let axis: Direction3<f32> = From::from(Vec3::new(1.0, 0.0, 0.0));
-        let angle = Angle::new_radians(::std::f32::consts::FRAC_PI_4);;
+        let angle = Angle::new_radians(::std::f32::consts::FRAC_PI_4);
 
         let start: Mat4<f32> = Mat4::new(
             1.0, 0.0, 0.0, 5.0,
