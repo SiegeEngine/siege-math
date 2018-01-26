@@ -5,7 +5,7 @@ use std::ops::{Add, Sub, Mul, Div,
 use num_traits::{Zero, One, Float};
 use std::default::Default;
 use float_cmp::{Ulps, ApproxEqUlps};
-use {Vec3, Mat3};
+use {Vec3, Mat3, Angle, Direction3};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
@@ -53,6 +53,53 @@ impl From<Quat<f64>> for Quat<f32> {
             v: From::from(q.v),
             w: q.w as f32
         }
+    }
+}
+
+impl Quat<f32> {
+    pub fn from_axis_angle(axis: &Direction3<f32>, angle: &Angle<f32>) -> Quat<f32>
+    {
+        let (s,c) = (angle.as_radians() / 2.0).sin_cos();
+        let mut q = Quat {
+            v: Vec3::new(axis.x * s, axis.y * s, axis.z * s),
+            w: c
+        };
+        q.normalize();
+        q
+    }
+
+    pub fn as_axis_angle(&self) -> (Direction3<f32>, Angle<f32>)
+    {
+        let mut qn = *self;
+        qn.normalize();
+        let angle = qn.w.acos() * 2.0;
+        let axis = qn.v;
+        (From::from(axis), Angle::from_radians(angle))
+    }
+}
+
+impl Quat<f64> {
+    pub fn from_axis_angle(axis: &Direction3<f64>, angle: &Angle<f64>) -> Quat<f64>
+    {
+        let (s,c) = (angle.as_radians() / 2.0).sin_cos();
+        let mut q = Quat {
+            v: Vec3::new(axis.x * s, axis.y * s, axis.z * s),
+            w: c
+        };
+        q.normalize();
+        q
+    }
+
+    pub fn as_axis_angle(&self) -> (Direction3<f64>, Angle<f64>)
+    {
+        let mut qn = *self;
+        qn.normalize();
+        let angle = qn.w.acos() * 2.0;
+        let s = angle.sin();
+        // the sin() function might be slow. If sqrt() is faster, we could use a
+        // trig identity:  sin squared = 1 - cos squared
+        // let s = (1.0 - (qn.w * qn.w)).sqrt();
+        (Direction3::new_isnormal(qn.v.x/s, qn.v.y/s, qn.v.z/s), Angle::from_radians(angle))
     }
 }
 
@@ -289,15 +336,6 @@ impl From<Mat3<f32>> for Quat<f32> {
     }
 }
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Quat<F> {
-    type Flt = F;
-
-    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
-        self.v.approx_eq_ulps(&other.v, ulps) &&
-            self.w.approx_eq_ulps(&other.w, ulps)
-    }
-}
-
 impl From<Mat3<f64>> for Quat<f64> {
     fn from(m: Mat3<f64>) -> Quat<f64> {
         let sum = m.x.x + m.y.y + m.z.z;
@@ -339,9 +377,18 @@ impl From<Mat3<f64>> for Quat<f64> {
     }
 }
 
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Quat<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.v.approx_eq_ulps(&other.v, ulps) &&
+            self.w.approx_eq_ulps(&other.w, ulps)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use {Quat, Vec3, Mat3, Direction3, Angle};
+    use {Quat, Vec3, Mat3, Angle, Direction3};
 
     #[test]
     fn test_quat_basic() {
@@ -379,7 +426,6 @@ mod tests {
         q.normalize();
 
         let m: Mat3<f32> = From::from(q);
-        println!("m: {:?}", m);
 
         // Conversion through a matrix could return the
         // conjugate (which represents the same rotation)
@@ -391,23 +437,34 @@ mod tests {
                 q2c.approx_eq_ulps(&q, 2));
     }
 
-    /*
     #[test]
-    fn test_quat_2() {
-        let axis: Direction3<f32> = From::from(Vec3::new(1.0, 0.0, 0.0));
-        let angle = Angle::new_radians(1.0);
-        let mr = Mat3::<f32>::rotate_axis_angle(axis, angle);
-        let q: Quat<f32> = From::from(mr);
+    fn test_axis_angle() {
+        use float_cmp::ApproxEqUlps;
 
-        let v: Vec3<f32> = Vec3::new(5.0, 23.0, -3.5);
-        let vr1 = q.rotate(v);
-
-        // Compare to another method of rotation
-        let vq = Quat::<f32> { v: v, w: 0.0 };
-        let qc = q.conjugate();
-        let vr2 = (q * vq * qc).v;
-
-        println!("vr1={:?} vr2={:?}", vr1, vr2);
+        let axis: Direction3<f32> = From::from(Vec3::<f32>::new(1.0, 1.0, 1.0));
+        let angle = Angle::<f32>::from_degrees(90.0);
+        let q = Quat::<f32>::from_axis_angle(&axis, &angle);
+        let (axis2, angle2) = q.as_axis_angle();
+        println!("axis {:?} angle {:?} axis {:?} angle {:?}",
+                 axis, angle, axis2, angle2);
+        assert!(axis.approx_eq_ulps(&axis2, 2));
+        assert!(angle.approx_eq_ulps(&angle2, 2));
     }
-*/
+
+    #[test]
+    fn test_rotation_x() {
+        use float_cmp::ApproxEqUlps;
+
+        let axis: Direction3<f32> = From::from(Vec3::<f32>::new(1.0, 0.0, 0.0));
+        let angle = Angle::<f32>::from_degrees(90.0);
+        let q = Quat::<f32>::from_axis_angle(&axis, &angle);
+
+        let object = Vec3::<f32>::new(10.0, 5.0, 3.0);
+
+        let object2 = q.rotate(object);
+
+        assert!(object2.x.approx_eq_ulps(&10.0, 2));
+        assert!(object2.y.approx_eq_ulps(&-3.0, 2));
+        assert!(object2.z.approx_eq_ulps(&5.0, 2));
+    }
 }
