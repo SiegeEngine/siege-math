@@ -1,6 +1,7 @@
 
 use num_traits::identities::Zero;
 use std::ops::{Deref, Mul, Sub, Add};
+use float_cmp::{Ulps, ApproxEqUlps};
 use super::{Vec2, Vec3, Vec4};
 
 /// Direction vector in 2-dimensions (normalized)
@@ -127,5 +128,21 @@ impl<F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Direction3<F> {
     #[inline]
     pub fn dot(&self, rhs: Direction3<F>) -> F {
         self.0.dot(rhs.0)
+    }
+}
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Direction2<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.0.approx_eq_ulps(&other.0, ulps)
+    }
+}
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Direction3<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.0.approx_eq_ulps(&other.0, ulps)
     }
 }

@@ -3,6 +3,7 @@ use num_traits::identities::{Zero, One};
 use num_traits::float::Float;
 use std::ops::{Index, IndexMut, Mul, Add, Neg, Div, Sub};
 use std::default::Default;
+use float_cmp::{Ulps, ApproxEqUlps};
 use super::vector::{Vec2, Vec3, Vec4, Direction3, Point3};
 use super::Angle;
 
@@ -1111,6 +1112,36 @@ impl From<Mat4<f64>> for Mat4<f32> {
             z: Vec4 { x: m.z.x as f32, y: m.z.y as f32, z: m.z.z as f32, w: m.z.w as f32 },
             p: Vec4 { x: m.p.x as f32, y: m.p.y as f32, z: m.p.z as f32, w: m.p.w as f32 },
         }
+    }
+}
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Mat2<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.x.approx_eq_ulps(&other.x, ulps) &&
+            self.y.approx_eq_ulps(&other.y, ulps)
+    }
+}
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Mat3<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.x.approx_eq_ulps(&other.x, ulps) &&
+            self.y.approx_eq_ulps(&other.y, ulps) &&
+            self.z.approx_eq_ulps(&other.z, ulps)
+    }
+}
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Mat4<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.x.approx_eq_ulps(&other.x, ulps) &&
+            self.y.approx_eq_ulps(&other.y, ulps) &&
+            self.z.approx_eq_ulps(&other.z, ulps) &&
+            self.p.approx_eq_ulps(&other.p, ulps)
     }
 }
 

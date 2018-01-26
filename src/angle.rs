@@ -1,5 +1,6 @@
 
 use std::ops::{Mul, Div, Add, Sub};
+use float_cmp::{Ulps, ApproxEqUlps};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -86,5 +87,13 @@ impl<F: Sub<F,Output=F>> Sub<Angle<F>> for Angle<F> {
 
     fn sub(self, rhs: Angle<F>) -> Angle<F> {
         Angle(self.0 - rhs.0)
+    }
+}
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Angle<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.0.approx_eq_ulps(&other.0, ulps)
     }
 }

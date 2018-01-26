@@ -1,6 +1,7 @@
 
 use num_traits::identities::One;
 use std::ops::{Deref, Sub, Add};
+use float_cmp::{Ulps, ApproxEqUlps};
 use super::{Vec2, Vec3, Vec4};
 
 /// Point vector in 2-dimensions
@@ -171,5 +172,21 @@ impl From<Point3<f64>> for Point3<f32> {
 impl From<Point3<f32>> for Point3<f64> {
     fn from(p: Point3<f32>) -> Point3<f64> {
         Point3(From::from(p.0))
+    }
+}
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Point2<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.0.approx_eq_ulps(&other.0, ulps)
+    }
+}
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Point3<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.0.approx_eq_ulps(&other.0, ulps)
     }
 }

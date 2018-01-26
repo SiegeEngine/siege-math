@@ -4,6 +4,7 @@ use std::ops::{Add, Sub, Mul, Div,
                Neg};
 use num_traits::{Zero, One, Float};
 use std::default::Default;
+use float_cmp::{Ulps, ApproxEqUlps};
 use {Vec3, Mat3};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -288,6 +289,15 @@ impl From<Mat3<f32>> for Quat<f32> {
     }
 }
 
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Quat<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.v.approx_eq_ulps(&other.v, ulps) &&
+            self.w.approx_eq_ulps(&other.w, ulps)
+    }
+}
+
 impl From<Mat3<f64>> for Quat<f64> {
     fn from(m: Mat3<f64>) -> Quat<f64> {
         let sum = m.x.x + m.y.y + m.z.z;
@@ -334,18 +344,48 @@ mod tests {
     use {Quat, Vec3, Mat3, Direction3, Angle};
 
     #[test]
+    fn test_quat_basic() {
+        let q = Quat::<f64>::new(
+            Vec3::<f64>::new(3.0, 4.0, 5.0),
+            6.0);
+        assert_eq!(q.v.x, 3.0);
+        assert_eq!(q.v.y, 4.0);
+        assert_eq!(q.v.z, 5.0);
+        assert_eq!(q.w, 6.0);
+
+        let q = Quat::<f64>::identity();
+        assert_eq!(q.v.x, 0.0);
+        assert_eq!(q.v.y, 0.0);
+        assert_eq!(q.v.z, 0.0);
+        assert_eq!(q.w, 1.0);
+
+        let q2 = Quat::<f64>::default();
+        assert_eq!(q, q2);
+
+        let mut q = Quat::<f64>::new(
+            Vec3::<f64>::new(3.0, 4.0, 5.0),
+            6.0);
+        q.normalize();
+        assert!(0.999999999 < q.magnitude());
+        assert!(q.magnitude() < 1.000000001);
+    }
+
+    #[test]
     fn test_quat_mat_conversion() {
         let v = Vec3::<f32>::new(1.0, 0.2, -0.3);
         let mut q = Quat::<f32>::new(v, 5.0);
         q.normalize();
-        println!("q: {:?}", q);
 
         let m: Mat3<f32> = From::from(q);
         println!("m: {:?}", m);
 
+        // Conversion through a matrix could return the
+        // conjugate (which represents the same rotation)
+        // so we have to check for either
         let q2: Quat<f32> = From::from(m);
-        println!("q2: {:?}", q2);
+        let q2c: Quat<f32> = q2.conjugate();
 
+        // FIXME...
         let xdiff = q.v.x - q2.v.x;
         let ydiff = q.v.y - q2.v.y;
         let zdiff = q.v.z - q2.v.z;

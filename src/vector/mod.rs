@@ -9,6 +9,7 @@ use num_traits::identities::Zero;
 use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
                Add, AddAssign, Sub, SubAssign};
 use std::default::Default;
+use float_cmp::{Ulps, ApproxEqUlps};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -443,6 +444,38 @@ impl From<Vec4<f64>> for Vec4<f32> {
 impl From<Vec4<f32>> for Vec4<f64> {
     fn from(v: Vec4<f32>) -> Vec4<f64> {
         Vec4 { x: v.x as f64, y: v.y as f64, z: v.z as f64, w: v.w as f64 }
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Vec2<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.x.approx_eq_ulps(&other.x, ulps)
+            && self.y.approx_eq_ulps(&other.y, ulps)
+    }
+}
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Vec3<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.x.approx_eq_ulps(&other.x, ulps)
+            && self.y.approx_eq_ulps(&other.y, ulps)
+            && self.z.approx_eq_ulps(&other.z, ulps)
+    }
+}
+
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Vec4<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.x.approx_eq_ulps(&other.x, ulps)
+            && self.y.approx_eq_ulps(&other.y, ulps)
+            && self.z.approx_eq_ulps(&other.z, ulps)
+            && self.w.approx_eq_ulps(&other.w, ulps)
     }
 }
 
