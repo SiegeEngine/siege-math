@@ -18,14 +18,14 @@ pub struct Direction3<F>(pub Vec3<F>);
 
 impl<F> Direction2<F> {
     #[inline]
-    pub fn new(x: F, y: F) -> Direction2<F> {
+    pub fn new_isnormal(x: F, y: F) -> Direction2<F> {
         Direction2(Vec2::new(x,y))
     }
 }
 
 impl<F> Direction3<F> {
     #[inline]
-    pub fn new(x: F, y: F, z: F) -> Direction3<F> {
+    pub fn new_isnormal(x: F, y: F, z: F) -> Direction3<F> {
         Direction3(Vec3::new(x,y,z))
     }
 }
