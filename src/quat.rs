@@ -1,9 +1,10 @@
 
-use std::ops::{Add, Sub, Mul,
+use std::ops::{Add, Sub, Mul, Div,
                AddAssign, SubAssign, MulAssign,
                Neg};
+use num_traits::{Zero, One, Float};
 use std::default::Default;
-use {Vec3, Mat3, Direction3};
+use {Vec3, Mat3};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
@@ -12,29 +13,35 @@ pub struct Quat<F> {
     pub w: F
 }
 
-impl Quat<f32> {
-    pub fn new(direction: Direction3<f32>, w: f32) -> Quat<f32> {
+impl<F: Copy + Float + Mul<F,Output=F> + Add<F,Output=F> + Div<F,Output=F>> Quat<F> {
+    pub fn new(v: Vec3<F>, w: F) -> Quat<F> {
         Quat {
-            v: From::from(direction),
-            w: w
+            v: v,
+            w: w,
         }
     }
 }
 
-impl Quat<f64> {
-    pub fn new(direction: Direction3<f64>, w: f64) -> Quat<f64> {
+impl<F: Zero + One> Quat<F> {
+    pub fn identity() -> Quat<F> {
         Quat {
-            v: From::from(direction),
-            w: w
+            v: Vec3::new(F::zero(), F::zero(), F::zero()),
+            w: F::one()
         }
     }
 }
 
-impl<F: Default> Default for Quat<F> {
+impl<F: Zero + One> Default for Quat<F> {
     fn default() -> Quat<F> {
+        Quat::identity()
+    }
+}
+
+impl From<Quat<f32>> for Quat<f64> {
+    fn from(q: Quat<f32>) -> Quat<f64> {
         Quat {
-            v: Default::default(),
-            w: Default::default()
+            v: From::from(q.v),
+            w: q.w as f64
         }
     }
 }
@@ -48,14 +55,32 @@ impl From<Quat<f64>> for Quat<f32> {
     }
 }
 
-impl From<Quat<f32>> for Quat<f64> {
-    fn from(q: Quat<f32>) -> Quat<f64> {
-        Quat {
-            v: From::from(q.v),
-            w: q.w as f64
-        }
+impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F>>
+    Quat<F>
+{
+    pub fn squared_magnitude(&self) -> F {
+        self.w * self.w + self.v.squared_magnitude()
     }
 }
+
+impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F> + Float>
+    Quat<F>
+{
+    pub fn magnitude(&self) -> F {
+        self.squared_magnitude().sqrt()
+    }
+}
+
+impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F> + Float>
+    Quat<F>
+{
+    pub fn normalize(&mut self) {
+        let mag = self.magnitude();
+        self.v = self.v / mag;
+        self.w = self.w / mag;
+    }
+}
+
 
 impl<F: Add<Output=F>>
     Add for Quat<F>
@@ -70,7 +95,7 @@ impl<F: Add<Output=F>>
     }
 }
 
-impl<F: Add<Output=F> + AddAssign<F> + Copy>
+impl<F: Copy + AddAssign<F>>
     AddAssign for Quat<F>
 {
     fn add_assign(&mut self, rhs: Quat<F>) {
@@ -114,6 +139,16 @@ impl<F: Copy + Mul<F,Output=F>>
     }
 }
 
+impl<F: Copy + Add<F,Output=F> + Mul<F,Output=F>>
+    Quat<F>
+{
+    pub fn dot(&self, other: Quat<F>) -> F
+    {
+        (self.w * other.w) + self.v.dot(other.v)
+    }
+}
+
+// Hamiltonian product
 impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
     Mul for Quat<F>
 {
@@ -146,8 +181,7 @@ impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
 }
 
 
-
-impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F>>
+impl<F: Copy + Neg<Output=F>>
     Quat<F>
 {
     pub fn conjugate(&self) -> Quat<F> {
@@ -156,30 +190,24 @@ impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F>>
             w: self.w
         }
     }
-
-    pub fn squared_magnitude(&self) -> Quat<F> {
-        *self * self.conjugate()
-    }
 }
 
-impl Quat<f32> {
-    pub fn rotate(&self, v: Vec3<f32>) -> Vec3<f32> {
-        v * ((self.w * self.w) - (self.v.x * self.v.x) - (self.v.y * self.v.y) - (self.v.z * self.v.z))
-            + self.v * (v.dot(self.v) * 2.0)
-            + self.v.cross(v) * (self.w * 2.0)
-    }
-}
+impl<F: Copy + Add<Output=F> + Mul<Output=F> + Sub<Output=F> + Neg<Output=F>>
+    Quat<F>
+{
+    pub fn rotate(&self, v: Vec3<F>) -> Vec3<F> {
+        let dot = v.dot(self.v);
 
-impl Quat<f64> {
-    pub fn rotate(&self, v: Vec3<f64>) -> Vec3<f64> {
         v * ((self.w * self.w) - (self.v.x * self.v.x) - (self.v.y * self.v.y) - (self.v.z * self.v.z))
-            + self.v * (v.dot(self.v) * 2.0)
-            + self.v.cross(v) * (self.w * 2.0)
+            + self.v * (dot + dot)
+            + self.v.cross(v) * (self.w + self.w)
     }
 }
 
 impl From<Quat<f32>> for Mat3<f32> {
-    fn from(q: Quat<f32>) -> Mat3<f32> {
+    fn from(mut q: Quat<f32>) -> Mat3<f32> {
+        q.normalize();
+
         let x2 = q.v.x * q.v.x;
         let y2 = q.v.y * q.v.y;
         let z2 = q.v.z * q.v.z;
@@ -199,7 +227,9 @@ impl From<Quat<f32>> for Mat3<f32> {
 }
 
 impl From<Quat<f64>> for Mat3<f64> {
-    fn from(q: Quat<f64>) -> Mat3<f64> {
+    fn from(mut q: Quat<f64>) -> Mat3<f64> {
+        q.normalize();
+
         let x2 = q.v.x * q.v.x;
         let y2 = q.v.y * q.v.y;
         let z2 = q.v.z * q.v.z;
@@ -238,7 +268,6 @@ impl From<Mat3<f32>> for Quat<f32> {
             y = (m.y.x + m.x.y) * f;
             z = (m.x.z + m.z.x) * f;
             w = (m.z.y - m.y.z) * f;
-
         }
         else if m.y.y > m.z.z {
             y = (m.y.y - m.x.x - m.z.z + 1.0).sqrt() * 0.5;
@@ -302,13 +331,13 @@ impl From<Mat3<f64>> for Quat<f64> {
 
 #[cfg(test)]
 mod tests {
-    use {Quat, Vec3, Mat3, Direction3};
+    use {Quat, Vec3, Mat3, Direction3, Angle};
 
     #[test]
-    fn test_quat_1() {
+    fn test_quat_mat_conversion() {
         let v = Vec3::<f32>::new(1.0, 0.2, -0.3);
-        let d: Direction3<f32> = From::from(v);
-        let q = Quat::<f32>::new(d, 5.0);
+        let mut q = Quat::<f32>::new(v, 5.0);
+        q.normalize();
         println!("q: {:?}", q);
 
         let m: Mat3<f32> = From::from(q);
@@ -326,4 +355,24 @@ mod tests {
         assert!(-0.000001 < zdiff && zdiff < 0.000001);
         assert!(-0.000001 < wdiff && wdiff < 0.000001);
     }
+
+    /*
+    #[test]
+    fn test_quat_2() {
+        let axis: Direction3<f32> = From::from(Vec3::new(1.0, 0.0, 0.0));
+        let angle = Angle::new_radians(1.0);
+        let mr = Mat3::<f32>::rotate_axis_angle(axis, angle);
+        let q: Quat<f32> = From::from(mr);
+
+        let v: Vec3<f32> = Vec3::new(5.0, 23.0, -3.5);
+        let vr1 = q.rotate(v);
+
+        // Compare to another method of rotation
+        let vq = Quat::<f32> { v: v, w: 0.0 };
+        let qc = q.conjugate();
+        let vr2 = (q * vq * qc).v;
+
+        println!("vr1={:?} vr2={:?}", vr1, vr2);
+    }
+*/
 }
