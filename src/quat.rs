@@ -7,9 +7,18 @@ use std::default::Default;
 use float_cmp::{Ulps, ApproxEqUlps};
 use {Vec3, Mat3, Angle, Direction3};
 
+// Quaternion (general)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct Quat<F> {
+    pub v: Vec3<F>,
+    pub w: F
+}
+
+/// Normalized unit quaternion
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize)]
+pub struct NQuat<F> {
     pub v: Vec3<F>,
     pub w: F
 }
@@ -31,10 +40,23 @@ impl<F: Zero + One> Quat<F> {
         }
     }
 }
+impl<F: Zero + One> NQuat<F> {
+    pub fn identity() -> NQuat<F> {
+        NQuat {
+            v: Vec3::new(F::zero(), F::zero(), F::zero()),
+            w: F::one()
+        }
+    }
+}
 
 impl<F: Zero + One> Default for Quat<F> {
     fn default() -> Quat<F> {
         Quat::identity()
+    }
+}
+impl<F: Zero + One> Default for NQuat<F> {
+    fn default() -> NQuat<F> {
+        NQuat::identity()
     }
 }
 
@@ -56,50 +78,63 @@ impl From<Quat<f64>> for Quat<f32> {
     }
 }
 
-impl Quat<f32> {
-    pub fn from_axis_angle(axis: &Direction3<f32>, angle: &Angle<f32>) -> Quat<f32>
+impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F> + Float>
+    From<Quat<F>> for NQuat<F>
+{
+    fn from(q: Quat<F>) -> NQuat<F> {
+        let mag = q.magnitude();
+        NQuat {
+            v: q.v / mag,
+            w: q.w / mag
+        }
+    }
+}
+
+impl<F> From<NQuat<F>> for Quat<F> {
+    fn from(nq: NQuat<F>) -> Quat<F> {
+        Quat { v: nq.v, w: nq.w }
+    }
+}
+
+impl NQuat<f32> {
+    pub fn from_axis_angle(axis: &Direction3<f32>, angle: &Angle<f32>) -> NQuat<f32>
     {
         let (s,c) = (angle.as_radians() / 2.0).sin_cos();
-        let mut q = Quat {
+        let q = NQuat {
             v: Vec3::new(axis.x * s, axis.y * s, axis.z * s),
             w: c
         };
-        q.normalize();
-        q
+        From::from(q)
     }
+}
 
+impl NQuat<f32> {
     pub fn as_axis_angle(&self) -> (Direction3<f32>, Angle<f32>)
     {
-        let mut qn = *self;
-        qn.normalize();
-        let angle = qn.w.acos() * 2.0;
-        let axis = qn.v;
+        let angle = self.w.acos() * 2.0;
+        let axis = self.v;
         (From::from(axis), Angle::from_radians(angle))
     }
 }
 
-impl Quat<f64> {
-    pub fn from_axis_angle(axis: &Direction3<f64>, angle: &Angle<f64>) -> Quat<f64>
+impl NQuat<f64> {
+    pub fn from_axis_angle(axis: &Direction3<f64>, angle: &Angle<f64>) -> NQuat<f64>
     {
         let (s,c) = (angle.as_radians() / 2.0).sin_cos();
-        let mut q = Quat {
+        let q = NQuat {
             v: Vec3::new(axis.x * s, axis.y * s, axis.z * s),
             w: c
         };
-        q.normalize();
-        q
+        From::from(q)
     }
+}
 
+impl NQuat<f64> {
     pub fn as_axis_angle(&self) -> (Direction3<f64>, Angle<f64>)
     {
-        let mut qn = *self;
-        qn.normalize();
-        let angle = qn.w.acos() * 2.0;
-        let s = angle.sin();
-        // the sin() function might be slow. If sqrt() is faster, we could use a
-        // trig identity:  sin squared = 1 - cos squared
-        // let s = (1.0 - (qn.w * qn.w)).sqrt();
-        (Direction3::new_isnormal(qn.v.x/s, qn.v.y/s, qn.v.z/s), Angle::from_radians(angle))
+        let angle = self.w.acos() * 2.0;
+        let axis = self.v;
+        (From::from(axis), Angle::from_radians(angle))
     }
 }
 
@@ -118,17 +153,6 @@ impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F> + F
         self.squared_magnitude().sqrt()
     }
 }
-
-impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F> + Float>
-    Quat<F>
-{
-    pub fn normalize(&mut self) {
-        let mag = self.magnitude();
-        self.v = self.v / mag;
-        self.w = self.w / mag;
-    }
-}
-
 
 impl<F: Add<Output=F>>
     Add for Quat<F>
@@ -196,6 +220,15 @@ impl<F: Copy + Add<F,Output=F> + Mul<F,Output=F>>
     }
 }
 
+impl<F: Copy + Add<F,Output=F> + Mul<F,Output=F>>
+    NQuat<F>
+{
+    pub fn dot(&self, other: Quat<F>) -> F
+    {
+        (self.w * other.w) + self.v.dot(other.v)
+    }
+}
+
 // Hamiltonian product
 impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
     Mul for Quat<F>
@@ -240,8 +273,19 @@ impl<F: Copy + Neg<Output=F>>
     }
 }
 
+impl<F: Copy + Neg<Output=F>>
+    NQuat<F>
+{
+    pub fn conjugate(&self) -> NQuat<F> {
+        NQuat {
+            v: -self.v,
+            w: self.w
+        }
+    }
+}
+
 impl<F: Copy + Add<Output=F> + Mul<Output=F> + Sub<Output=F> + Neg<Output=F>>
-    Quat<F>
+    NQuat<F>
 {
     pub fn rotate(&self, v: Vec3<F>) -> Vec3<F> {
         let dot = v.dot(self.v);
@@ -252,10 +296,8 @@ impl<F: Copy + Add<Output=F> + Mul<Output=F> + Sub<Output=F> + Neg<Output=F>>
     }
 }
 
-impl From<Quat<f32>> for Mat3<f32> {
-    fn from(mut q: Quat<f32>) -> Mat3<f32> {
-        q.normalize();
-
+impl From<NQuat<f32>> for Mat3<f32> {
+    fn from(q: NQuat<f32>) -> Mat3<f32> {
         let x2 = q.v.x * q.v.x;
         let y2 = q.v.y * q.v.y;
         let z2 = q.v.z * q.v.z;
@@ -274,10 +316,8 @@ impl From<Quat<f32>> for Mat3<f32> {
     }
 }
 
-impl From<Quat<f64>> for Mat3<f64> {
-    fn from(mut q: Quat<f64>) -> Mat3<f64> {
-        q.normalize();
-
+impl From<NQuat<f64>> for Mat3<f64> {
+    fn from(q: NQuat<f64>) -> Mat3<f64> {
         let x2 = q.v.x * q.v.x;
         let y2 = q.v.y * q.v.y;
         let z2 = q.v.z * q.v.z;
@@ -296,8 +336,8 @@ impl From<Quat<f64>> for Mat3<f64> {
     }
 }
 
-impl From<Mat3<f32>> for Quat<f32> {
-    fn from(m: Mat3<f32>) -> Quat<f32> {
+impl From<Mat3<f32>> for NQuat<f32> {
+    fn from(m: Mat3<f32>) -> NQuat<f32> {
         let sum = m.x.x + m.y.y + m.z.z;
         let x;
         let y;
@@ -332,12 +372,12 @@ impl From<Mat3<f32>> for Quat<f32> {
             w = (m.y.x - m.x.y) * f;
         }
 
-        Quat { v: Vec3 { x: x, y: y, z: z }, w: w }
+        NQuat { v: Vec3 { x: x, y: y, z: z }, w: w }
     }
 }
 
-impl From<Mat3<f64>> for Quat<f64> {
-    fn from(m: Mat3<f64>) -> Quat<f64> {
+impl From<Mat3<f64>> for NQuat<f64> {
+    fn from(m: Mat3<f64>) -> NQuat<f64> {
         let sum = m.x.x + m.y.y + m.z.z;
         let x;
         let y;
@@ -373,7 +413,7 @@ impl From<Mat3<f64>> for Quat<f64> {
             w = (m.y.x - m.x.y) * f;
         }
 
-        Quat { v: Vec3 { x: x, y: y, z: z }, w: w }
+        NQuat { v: Vec3 { x: x, y: y, z: z }, w: w }
     }
 }
 
@@ -386,9 +426,18 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Quat<F> {
     }
 }
 
+impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for NQuat<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.v.approx_eq_ulps(&other.v, ulps) &&
+            self.w.approx_eq_ulps(&other.w, ulps)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use {Quat, Vec3, Mat3, Angle, Direction3};
+    use {Quat, NQuat, Vec3, Mat3, Angle, Direction3};
 
     #[test]
     fn test_quat_basic() {
@@ -409,12 +458,12 @@ mod tests {
         let q2 = Quat::<f64>::default();
         assert_eq!(q, q2);
 
-        let mut q = Quat::<f64>::new(
-            Vec3::<f64>::new(3.0, 4.0, 5.0),
-            6.0);
-        q.normalize();
-        assert!(0.999999999 < q.magnitude());
-        assert!(q.magnitude() < 1.000000001);
+        let q: NQuat<f64> = From::from(
+            Quat::<f64>::new(Vec3::<f64>::new(3.0, 4.0, 5.0), 6.0)
+        );
+        let q2: Quat<f64> = From::from(q);
+        assert!(0.999999999 < q2.magnitude());
+        assert!(q2.magnitude() < 1.000000001);
     }
 
     #[test]
@@ -422,16 +471,16 @@ mod tests {
         use float_cmp::ApproxEqUlps;
 
         let v = Vec3::<f32>::new(1.0, 0.2, -0.3);
-        let mut q = Quat::<f32>::new(v, 5.0);
-        q.normalize();
+        let q: NQuat<f32> = From::from(
+            Quat::<f32>::new(v, 5.0));
 
         let m: Mat3<f32> = From::from(q);
 
         // Conversion through a matrix could return the
         // conjugate (which represents the same rotation)
         // so we have to check for either
-        let q2: Quat<f32> = From::from(m);
-        let q2c: Quat<f32> = q2.conjugate();
+        let q2: NQuat<f32> = From::from(m);
+        let q2c: NQuat<f32> = q2.conjugate();
 
         assert!(q2.approx_eq_ulps(&q, 2) ||
                 q2c.approx_eq_ulps(&q, 2));
@@ -443,7 +492,7 @@ mod tests {
 
         let axis: Direction3<f32> = From::from(Vec3::<f32>::new(1.0, 1.0, 1.0));
         let angle = Angle::<f32>::from_degrees(90.0);
-        let q = Quat::<f32>::from_axis_angle(&axis, &angle);
+        let q = NQuat::<f32>::from_axis_angle(&axis, &angle);
         let (axis2, angle2) = q.as_axis_angle();
         println!("axis {:?} angle {:?} axis {:?} angle {:?}",
                  axis, angle, axis2, angle2);
@@ -457,7 +506,7 @@ mod tests {
 
         let axis: Direction3<f32> = From::from(Vec3::<f32>::new(1.0, 0.0, 0.0));
         let angle = Angle::<f32>::from_degrees(90.0);
-        let q = Quat::<f32>::from_axis_angle(&axis, &angle);
+        let q = NQuat::<f32>::from_axis_angle(&axis, &angle);
 
         let object = Vec3::<f32>::new(10.0, 5.0, 3.0);
 

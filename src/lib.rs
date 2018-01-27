@@ -14,7 +14,7 @@ pub mod matrix;
 pub use self::matrix::{Mat2, Mat3, Mat4};
 
 pub mod quat;
-pub use self::quat::Quat;
+pub use self::quat::{Quat, NQuat};
 
 pub mod angle;
 pub use self::angle::Angle;
