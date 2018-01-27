@@ -18,3 +18,6 @@ pub use self::quat::{Quat, NQuat};
 
 pub mod angle;
 pub use self::angle::Angle;
+
+pub mod position;
+pub use self::position::Position;
