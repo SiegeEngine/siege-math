@@ -1,8 +1,10 @@
 
 use num_traits::identities::Zero;
+use num_traits::Float;
 use std::ops::{Deref, Mul, Sub, Add};
 use float_cmp::{Ulps, ApproxEqUlps};
 use super::{Vec2, Vec3, Vec4};
+use Angle;
 
 /// Direction vector in 2-dimensions (normalized)
 #[repr(C)]
@@ -116,7 +118,6 @@ impl Direction3<f64> {
     }
 }
 
-
 impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F>> Direction3<F> {
     #[inline]
     pub fn cross(&self, rhs: Vec3<F>) -> Vec3<F> {
@@ -144,5 +145,24 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Direction3<F> {
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
         self.0.approx_eq_ulps(&other.0, ulps)
+    }
+}
+
+impl<F: Copy + Float> Direction3<F> {
+    pub fn from_lat_long(latitude: Angle<F>, longitude: Angle<F>) -> Direction3<F>
+    {
+        let (slat,clat) = latitude.as_radians().sin_cos();
+        let (slon,clon) = longitude.as_radians().sin_cos();
+        Direction3(Vec3 {
+            x: clat * slon,
+            y: slat,
+            z: slat * clon,
+        })
+    }
+
+    pub fn to_lat_long(&self) -> (Angle<F>, Angle<F>) {
+        let lat = self.0.y.acos();
+        let lon = (self.0.z / self.0.y).acos();
+        (Angle::from_radians(lat), Angle::from_radians(lon))
     }
 }
