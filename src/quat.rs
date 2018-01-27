@@ -250,6 +250,18 @@ impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
     }
 }
 
+impl<F: Copy + Float + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
+    Mul for NQuat<F>
+{
+    type Output = NQuat<F>;
+
+    fn mul(self, rhs: NQuat<F>) -> NQuat<F> {
+        let a: Quat<F> = From::from(self);
+        let b: Quat<F> = From::from(rhs);
+        From::from(a * b)
+    }
+}
+
 impl<F: Copy + Mul<F,Output=F> + MulAssign<F>>
     MulAssign<F> for Quat<F>
 {
