@@ -3,7 +3,9 @@ pub mod point;
 pub use self::point::{Point2, Point3};
 
 pub mod direction;
-pub use self::direction::{Direction2, Direction3};
+pub use self::direction::{Direction2, Direction3,
+                          X_AXIS_F32, Y_AXIS_F32, Z_AXIS_F32,
+                          X_AXIS_F64, Y_AXIS_F64, Z_AXIS_F64};
 
 use num_traits::identities::Zero;
 use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
