@@ -1,7 +1,5 @@
 
-use std::ops::{Add, Sub, Mul, Div,
-               AddAssign, SubAssign, MulAssign,
-               Neg};
+use std::ops::{Add, Sub, Mul, AddAssign, SubAssign, MulAssign, Neg};
 use num_traits::{Zero, One, Float};
 use std::default::Default;
 use float_cmp::{Ulps, ApproxEqUlps};
@@ -23,7 +21,7 @@ pub struct NQuat<F> {
     w: F
 }
 
-impl<F: Copy + Float + Mul<F,Output=F> + Add<F,Output=F> + Div<F,Output=F>> Quat<F> {
+impl<F> Quat<F> {
     pub fn new(v: Vec3<F>, w: F) -> Quat<F> {
         Quat {
             v: v,
@@ -32,7 +30,7 @@ impl<F: Copy + Float + Mul<F,Output=F> + Add<F,Output=F> + Div<F,Output=F>> Quat
     }
 }
 
-impl<F: Copy + Float + Mul<F,Output=F> + Add<F,Output=F> + Div<F,Output=F>> NQuat<F> {
+impl<F> NQuat<F> {
     pub fn new_isnormal(v: Vec3<F>, w: F) -> NQuat<F> {
         NQuat {
             v: v,
@@ -40,7 +38,6 @@ impl<F: Copy + Float + Mul<F,Output=F> + Add<F,Output=F> + Div<F,Output=F>> NQua
         }
     }
 }
-
 
 impl<F: Zero + One> Quat<F> {
     pub fn identity() -> Quat<F> {
