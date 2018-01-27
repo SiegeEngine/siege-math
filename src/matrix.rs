@@ -1129,6 +1129,32 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Mat2<F> {
     }
 }
 
+// ----------------------------------------------------------------------------
+// Convert between sizes
+
+impl<F: Copy> Mat4<F> {
+    pub fn as_mat3(&self) -> Mat3<F> {
+        Mat3 {
+            x: Vec3::new(self.x.x, self.x.y, self.x.z),
+            y: Vec3::new(self.y.x, self.y.y, self.y.z),
+            z: Vec3::new(self.z.x, self.z.y, self.z.z),
+        }
+    }
+}
+
+impl<F: Copy + Zero + One> Mat3<F> {
+    pub fn as_mat4(&self) -> Mat4<F> {
+        Mat4 {
+            x: Vec4::new(self.x.x, self.x.y, self.x.z, F::zero()),
+            y: Vec4::new(self.y.x, self.y.y, self.y.z, F::zero()),
+            z: Vec4::new(self.z.x, self.z.y, self.z.z, F::zero()),
+            p: Vec4::new(F::zero(), F::zero(), F::zero(), F::one()),
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+
 impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Mat3<F> {
     type Flt = F;
 
