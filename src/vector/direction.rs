@@ -1,7 +1,7 @@
 
 use num_traits::identities::Zero;
 use num_traits::Float;
-use std::ops::{Deref, Mul, Sub, Add};
+use std::ops::{Deref, Mul, Sub, Add, Neg};
 use float_cmp::{Ulps, ApproxEqUlps};
 use super::{Vec2, Vec3, Vec4};
 use Angle;
@@ -148,6 +148,15 @@ impl<F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Direction3<F> {
     #[inline]
     pub fn dot(&self, rhs: Direction3<F>) -> F {
         self.0.dot(rhs.0)
+    }
+}
+
+impl<F: Neg<Output=F>> Neg for Direction3<F> {
+    type Output = Direction3<F>;
+
+    #[inline]
+    fn neg(self) -> Direction3<F> {
+        Direction3(-self.0)
     }
 }
 
