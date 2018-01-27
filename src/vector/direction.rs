@@ -10,13 +10,13 @@ use Angle;
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct Direction2<F>(pub Vec2<F>);
+pub struct Direction2<F>(Vec2<F>);
 
 /// Direction vector in 3-dimensions (normalized)
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct Direction3<F>(pub Vec3<F>);
+pub struct Direction3<F>(Vec3<F>);
 
 impl<F> Direction2<F> {
     #[inline]

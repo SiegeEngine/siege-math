@@ -19,8 +19,8 @@ pub struct Quat<F> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct NQuat<F> {
-    pub v: Vec3<F>,
-    pub w: F
+    v: Vec3<F>,
+    w: F
 }
 
 impl<F: Copy + Float + Mul<F,Output=F> + Add<F,Output=F> + Div<F,Output=F>> Quat<F> {
@@ -31,6 +31,16 @@ impl<F: Copy + Float + Mul<F,Output=F> + Add<F,Output=F> + Div<F,Output=F>> Quat
         }
     }
 }
+
+impl<F: Copy + Float + Mul<F,Output=F> + Add<F,Output=F> + Div<F,Output=F>> NQuat<F> {
+    pub fn new_isnormal(v: Vec3<F>, w: F) -> NQuat<F> {
+        NQuat {
+            v: v,
+            w: w,
+        }
+    }
+}
+
 
 impl<F: Zero + One> Quat<F> {
     pub fn identity() -> Quat<F> {

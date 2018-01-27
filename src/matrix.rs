@@ -196,11 +196,16 @@ impl<F: Zero + One> Mat4<F> {
     pub fn from_components(x_dir: Direction3<F>, y_dir: Direction3<F>, z_dir: Direction3<F>,
                            pos: Point3<F>) -> Mat4<F>
     {
+        // get access to the direction components
+        let x_dir: Vec3<F> = From::from(x_dir);
+        let y_dir: Vec3<F> = From::from(y_dir);
+        let z_dir: Vec3<F> = From::from(z_dir);
+
         Mat4 {  // looks transposed because stored column-major
-            x: Vec4::new(x_dir.0.x, x_dir.0.y, x_dir.0.z, F::zero()),
-            y: Vec4::new(y_dir.0.x, y_dir.0.y, y_dir.0.z, F::zero()),
-            z: Vec4::new(z_dir.0.x, z_dir.0.y, z_dir.0.z, F::zero()),
-            p: Vec4::new(  pos.0.x,   pos.0.y,   pos.0.z, F::one())
+            x: Vec4::new(x_dir.x, x_dir.y, x_dir.z, F::zero()),
+            y: Vec4::new(y_dir.x, y_dir.y, y_dir.z, F::zero()),
+            z: Vec4::new(z_dir.x, z_dir.y, z_dir.z, F::zero()),
+            p: Vec4::new(pos.0.x, pos.0.y, pos.0.z, F::one())
         }
     }
 
