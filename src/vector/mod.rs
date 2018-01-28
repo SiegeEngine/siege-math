@@ -8,6 +8,7 @@ pub use self::direction::{Direction2, Direction3,
                           X_AXIS_F64, Y_AXIS_F64, Z_AXIS_F64};
 
 use num_traits::identities::Zero;
+use num_traits::Float;
 use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
                Add, AddAssign, Sub, SubAssign};
 use std::default::Default;
@@ -214,19 +215,9 @@ macro_rules! impl_vector {
             }
         }
 
-        impl $VecN<f32> {
+        impl<F: Float> $VecN<F> {
             #[inline]
-            pub fn magnitude(&self) -> f32 {
-                self.squared_magnitude().sqrt()
-                // FIXME: once simd is part of std and stable, use it
-                // rsqrt is faster than sqrt (but is approximate)
-                // self.squared_magnitude().rsqrt()
-            }
-        }
-
-        impl $VecN<f64> {
-            #[inline]
-            pub fn magnitude(&self) -> f64 {
+            pub fn magnitude(&self) -> F {
                 self.squared_magnitude().sqrt()
                 // FIXME: once simd is part of std and stable, use it
                 // rsqrt is faster than sqrt (but is approximate)
@@ -242,29 +233,6 @@ macro_rules! impl_vector {
                 $VecN {
                     $first: self.$first * rhs,
                     $($field: self.$field * rhs),*
-                }
-            }
-        }
-
-        impl Mul<$VecN<f32>> for f32 {
-            type Output = $VecN<f32>;
-
-            #[inline]
-            fn mul(self, rhs: $VecN<f32>) -> $VecN<f32> {
-                $VecN {
-                    $first: self * rhs.$first,
-                    $($field: self * rhs.$field),*
-                }
-            }
-        }
-        impl Mul<$VecN<f64>> for f64 {
-            type Output = $VecN<f64>;
-
-            #[inline]
-            fn mul(self, rhs: $VecN<f64>) -> $VecN<f64> {
-                $VecN {
-                    $first: self * rhs.$first,
-                    $($field: self * rhs.$field),*
                 }
             }
         }

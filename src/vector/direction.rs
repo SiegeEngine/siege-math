@@ -1,7 +1,7 @@
 
 use num_traits::identities::Zero;
 use num_traits::Float;
-use std::ops::{Deref, Mul, Sub, Add, Neg};
+use std::ops::{Deref, Mul, Sub, Add, Neg, DivAssign};
 use float_cmp::{Ulps, ApproxEqUlps};
 use super::{Vec2, Vec3, Vec4};
 use Angle;
@@ -85,33 +85,16 @@ impl<F: Zero> From<Direction3<F>> for Vec4<F> {
     }
 }
 
-impl From<Vec2<f32>> for Direction2<f32> {
-    fn from(mut v: Vec2<f32>) -> Direction2<f32> {
+impl<F: Float + DivAssign> From<Vec2<F>> for Direction2<F> {
+    fn from(mut v: Vec2<F>) -> Direction2<F> {
         let mag = v.magnitude();
         v.x /= mag;
         v.y /= mag;
         Direction2(v)
     }
 }
-impl From<Vec2<f64>> for Direction2<f64> {
-    fn from(mut v: Vec2<f64>) -> Direction2<f64> {
-        let mag = v.magnitude();
-        v.x /= mag;
-        v.y /= mag;
-        Direction2(v)
-    }
-}
-impl From<Vec3<f32>> for Direction3<f32> {
-    fn from(mut v: Vec3<f32>) -> Direction3<f32> {
-        let mag = v.magnitude();
-        v.x /= mag;
-        v.y /= mag;
-        v.z /= mag;
-        Direction3(v)
-    }
-}
-impl From<Vec3<f64>> for Direction3<f64> {
-    fn from(mut v: Vec3<f64>) -> Direction3<f64> {
+impl<F: Float + DivAssign> From<Vec3<F>> for Direction3<F> {
+    fn from(mut v: Vec3<F>) -> Direction3<F> {
         let mag = v.magnitude();
         v.x /= mag;
         v.y /= mag;
@@ -120,19 +103,11 @@ impl From<Vec3<f64>> for Direction3<f64> {
     }
 }
 
-impl Direction3<f32> {
+impl<F: Copy + Zero + PartialEq> Direction3<F> {
     #[allow(dead_code)]
     #[inline]
-    fn from_vec4(v: Vec4<f32>) -> Option<Direction3<f32>> {
-        if v.w != 0.0 { return None; }
-        Some(Direction3(v.truncate_w()))
-    }
-}
-impl Direction3<f64> {
-    #[allow(dead_code)]
-    #[inline]
-    fn from_vec4(v: Vec4<f64>) -> Option<Direction3<f64>> {
-        if v.w != 0.0 { return None; }
+    fn from_vec4(v: Vec4<F>) -> Option<Direction3<F>> {
+        if v.w != F::zero() { return None; }
         Some(Direction3(v.truncate_w()))
     }
 }

@@ -1,5 +1,5 @@
 
-use std::ops::{Add, Sub, Mul, AddAssign, SubAssign, MulAssign, Neg};
+use std::ops::{Add, Sub, Mul, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
 use num_traits::{Zero, One, Float};
 use std::default::Default;
 use float_cmp::{Ulps, ApproxEqUlps};
@@ -85,6 +85,25 @@ impl From<Quat<f64>> for Quat<f32> {
     }
 }
 
+impl From<NQuat<f32>> for NQuat<f64> {
+    fn from(q: NQuat<f32>) -> NQuat<f64> {
+        NQuat {
+            v: From::from(q.v),
+            w: q.w as f64
+        }
+    }
+}
+
+impl From<NQuat<f64>> for NQuat<f32> {
+    fn from(q: NQuat<f64>) -> NQuat<f32> {
+        NQuat {
+            v: From::from(q.v),
+            w: q.w as f32
+        }
+    }
+}
+
+
 impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F> + Float>
     From<Quat<F>> for NQuat<F>
 {
@@ -103,10 +122,11 @@ impl<F> From<NQuat<F>> for Quat<F> {
     }
 }
 
-impl NQuat<f32> {
-    pub fn from_axis_angle(axis: &Direction3<f32>, angle: &Angle<f32>) -> NQuat<f32>
+impl<F: Zero + One + Float + Mul<F,Output=F>> NQuat<F> {
+    pub fn from_axis_angle(axis: &Direction3<F>, angle: &Angle<F>) -> NQuat<F>
     {
-        let (s,c) = (angle.as_radians() / 2.0).sin_cos();
+        let two = F::one() + F::one();
+        let (s,c) = (angle.as_radians() / two).sin_cos();
         let q = NQuat {
             v: Vec3::new(axis.x * s, axis.y * s, axis.z * s),
             w: c
@@ -115,31 +135,11 @@ impl NQuat<f32> {
     }
 }
 
-impl NQuat<f32> {
-    pub fn as_axis_angle(&self) -> (Direction3<f32>, Angle<f32>)
+impl<F: Zero + One + Float + Mul<F,Output=F> + DivAssign> NQuat<F> {
+    pub fn as_axis_angle(&self) -> (Direction3<F>, Angle<F>)
     {
-        let angle = self.w.acos() * 2.0;
-        let axis = self.v;
-        (From::from(axis), Angle::from_radians(angle))
-    }
-}
-
-impl NQuat<f64> {
-    pub fn from_axis_angle(axis: &Direction3<f64>, angle: &Angle<f64>) -> NQuat<f64>
-    {
-        let (s,c) = (angle.as_radians() / 2.0).sin_cos();
-        let q = NQuat {
-            v: Vec3::new(axis.x * s, axis.y * s, axis.z * s),
-            w: c
-        };
-        From::from(q)
-    }
-}
-
-impl NQuat<f64> {
-    pub fn as_axis_angle(&self) -> (Direction3<f64>, Angle<f64>)
-    {
-        let angle = self.w.acos() * 2.0;
+        let two = F::one() + F::one();
+        let angle = self.w.acos() * two;
         let axis = self.v;
         (From::from(axis), Angle::from_radians(angle))
     }
