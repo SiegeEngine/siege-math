@@ -214,7 +214,7 @@ impl<F: FullFloat> SubAssign for Quat<F>
 }
 
 // ----------------------------------------------------------------------------
-// Scalar Mul/Div, Hamiltonian Product, Dot product
+// Scalar Mul, Dot product, Hamiltonian product
 
 impl<F: FullFloat> Mul<F> for Quat<F>
 {
@@ -225,6 +225,22 @@ impl<F: FullFloat> Mul<F> for Quat<F>
             v: self.v * rhs,
             w: self.w * rhs,
         }
+    }
+}
+
+impl<F: FullFloat> MulAssign<F> for Quat<F>
+{
+    fn mul_assign(&mut self, rhs: F) {
+        self.v *= rhs;
+        self.w *= rhs;
+    }
+}
+
+impl<F: FullFloat> MulAssign for Quat<F>
+{
+    fn mul_assign(&mut self, rhs: Quat<F>) {
+        self.v = self.v.cross(rhs.v)  +  rhs.v * self.w  +  self.v * rhs.w;
+        self.w = self.w * rhs.w  -  self.v.dot(rhs.v);
     }
 }
 
@@ -244,7 +260,6 @@ impl<F: FullFloat> NQuat<F>
     }
 }
 
-// Hamiltonian product
 impl<F: FullFloat> Mul for Quat<F>
 {
     type Output = Quat<F>;
@@ -265,22 +280,6 @@ impl<F: FullFloat> Mul for NQuat<F>
         let a: Quat<F> = From::from(self);
         let b: Quat<F> = From::from(rhs);
         From::from(a * b)
-    }
-}
-
-impl<F: FullFloat> MulAssign<F> for Quat<F>
-{
-    fn mul_assign(&mut self, rhs: F) {
-        self.v *= rhs;
-        self.w *= rhs;
-    }
-}
-
-impl<F: FullFloat> MulAssign for Quat<F>
-{
-    fn mul_assign(&mut self, rhs: Quat<F>) {
-        self.v = self.v.cross(rhs.v)  +  rhs.v * self.w  +  self.v * rhs.w;
-        self.w = self.w * rhs.w  -  self.v.dot(rhs.v);
     }
 }
 
@@ -321,6 +320,16 @@ impl<F: FullFloat> NQuat<F>
     }
 }
 
+// implemented also as NQuat * Vec3
+impl<F: FullFloat> Mul<Vec3<F>> for NQuat<F>
+{
+    type Output = Vec3<F>;
+
+    fn mul(self, rhs: Vec3<F>) -> Vec3<F> {
+        self.rotate(rhs)
+    }
+}
+
 // ----------------------------------------------------------------------------
 // To/From Matrix
 
@@ -345,7 +354,6 @@ impl<F: FullFloat> From<NQuat<F>> for Mat3<F> {
     }
 }
 
-// GINA
 impl<F: FullFloat> From<Mat3<F>> for NQuat<F> {
     fn from(m: Mat3<F>) -> NQuat<F> {
         let one: F = F::one();
