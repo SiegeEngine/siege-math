@@ -154,6 +154,23 @@ impl<F: FullFloat> NQuat<F> {
 }
 
 // ----------------------------------------------------------------------------
+// Compute the quat that rotates from start to end
+
+impl<F: FullFloat> NQuat<F> {
+    pub fn from_directions(start: Direction3<F>, end: Direction3<F>) -> NQuat<F>
+    {
+        // From Real-Time Rendering, 3rd ed, p79
+        let two: F = NumCast::from(2.0_f32).unwrap();
+        let c = F::one() / (two * (F::one() + F::E())).sqrt();
+        let v: Vec3<F> = From::from(start.cross(end));
+        NQuat {
+            v: v * c,
+            w: two / c
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
 // Magnitude
 
 impl<F: FullFloat> Quat<F>
