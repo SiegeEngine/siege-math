@@ -139,8 +139,8 @@ impl Direction3<f64> {
 
 impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F>> Direction3<F> {
     #[inline]
-    pub fn cross(&self, rhs: Vec3<F>) -> Vec3<F> {
-        self.0.cross(rhs)
+    pub fn cross(&self, rhs: Direction3<F>) -> Direction3<F> {
+        Direction3(self.0.cross(rhs.0))
     }
 }
 
