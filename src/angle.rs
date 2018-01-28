@@ -1,6 +1,6 @@
 
 use num_traits::NumCast;
-use std::ops::{Mul, Div, Add, Sub};
+use std::ops::{Mul, Div, Add, Sub, Neg};
 use float_cmp::{Ulps, ApproxEqUlps};
 use FullFloat;
 
@@ -94,6 +94,14 @@ impl<F: FullFloat> Sub<Angle<F>> for Angle<F>
 
     fn sub(self, rhs: Angle<F>) -> Angle<F> {
         Angle(self.0 - rhs.0)
+    }
+}
+
+impl<F: FullFloat> Neg for Angle<F> {
+    type Output = Angle<F>;
+
+    fn neg(self) -> Angle<F> {
+        Angle(-self.0)
     }
 }
 
