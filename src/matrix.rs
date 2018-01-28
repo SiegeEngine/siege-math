@@ -1,11 +1,10 @@
 
-use num_traits::identities::{Zero, One};
-use num_traits::float::Float;
-use std::ops::{Index, IndexMut, Mul, Add, Neg, Div, Sub};
+use num_traits::NumCast;
+use std::ops::{Index, IndexMut, Mul, Add};
 use std::default::Default;
 use float_cmp::{Ulps, ApproxEqUlps};
-use super::vector::{Vec2, Vec3, Vec4, Direction3, Point3};
-use super::Angle;
+use vector::{Vec2, Vec3, Vec4, Direction3, Point3};
+use {Angle, FullFloat};
 
 // NOTE: we store matrices in column-major order, which means we pre-multiply.
 // This is traditional so matrices directly copied to the GPU will work with
@@ -49,7 +48,7 @@ pub struct Mat4<F> {
 // -- impl Index --------------------------------------------------------------
 
 // This is defined in row-major order
-impl<F> Index<(usize,usize)> for Mat2<F> {
+impl<F: FullFloat> Index<(usize,usize)> for Mat2<F> {
     type Output = F;
 
     #[inline]
@@ -62,7 +61,7 @@ impl<F> Index<(usize,usize)> for Mat2<F> {
     }
 }
 
-impl<F> Index<(usize,usize)> for Mat3<F> {
+impl<F: FullFloat> Index<(usize,usize)> for Mat3<F> {
     type Output = F;
 
     #[inline]
@@ -76,7 +75,7 @@ impl<F> Index<(usize,usize)> for Mat3<F> {
     }
 }
 
-impl<F> Index<(usize,usize)> for Mat4<F> {
+impl<F: FullFloat> Index<(usize,usize)> for Mat4<F> {
     type Output = F;
 
     #[inline]
@@ -93,7 +92,7 @@ impl<F> Index<(usize,usize)> for Mat4<F> {
 
 // -- impl IndexMut -----------------------------------------------------------
 
-impl<F> IndexMut<(usize,usize)> for Mat2<F> {
+impl<F: FullFloat> IndexMut<(usize,usize)> for Mat2<F> {
     #[inline]
     fn index_mut(&mut self, (row,col): (usize,usize)) -> &mut F {
         match col {
@@ -104,7 +103,7 @@ impl<F> IndexMut<(usize,usize)> for Mat2<F> {
     }
 }
 
-impl<F> IndexMut<(usize,usize)> for Mat3<F> {
+impl<F: FullFloat> IndexMut<(usize,usize)> for Mat3<F> {
     #[inline]
     fn index_mut(&mut self, (row,col): (usize,usize)) -> &mut F {
         match col {
@@ -116,7 +115,7 @@ impl<F> IndexMut<(usize,usize)> for Mat3<F> {
     }
 }
 
-impl<F> IndexMut<(usize,usize)> for Mat4<F> {
+impl<F: FullFloat> IndexMut<(usize,usize)> for Mat4<F> {
     #[inline]
     fn index_mut(&mut self, (row,col): (usize,usize)) -> &mut F {
         match col {
@@ -131,7 +130,7 @@ impl<F> IndexMut<(usize,usize)> for Mat4<F> {
 
 // -- new ---------------------------------------------------------------------
 
-impl<F> Mat2<F> {
+impl<F: FullFloat> Mat2<F> {
     #[inline]
     pub fn new(r0c0: F, r0c1: F,
                r1c0: F, r1c1: F) -> Mat2<F>
@@ -149,7 +148,7 @@ impl<F> Mat2<F> {
     }
 }
 
-impl<F> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     pub fn new(r0c0: F, r0c1: F, r0c2: F,
                r1c0: F, r1c1: F, r1c2: F,
@@ -169,7 +168,7 @@ impl<F> Mat3<F> {
     }
 }
 
-impl<F> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     pub fn new(r0c0: F, r0c1: F, r0c2: F, r0c3: F,
                r1c0: F, r1c1: F, r1c2: F, r1c3: F,
@@ -191,7 +190,7 @@ impl<F> Mat4<F> {
     }
 }
 
-impl<F: Zero + One> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     pub fn from_components(x_dir: Direction3<F>, y_dir: Direction3<F>, z_dir: Direction3<F>,
                            pos: Point3<F>) -> Mat4<F>
@@ -223,7 +222,7 @@ impl<F: Zero + One> Mat4<F> {
 
 // -- impl Default ------------------------------------------------------------
 
-impl<F: Default> Default for Mat2<F> {
+impl<F: FullFloat> Default for Mat2<F> {
     #[inline]
     fn default() -> Mat2<F> {
         Mat2::new( F::default(), F::default(),
@@ -231,7 +230,7 @@ impl<F: Default> Default for Mat2<F> {
     }
 }
 
-impl<F: Default> Default for Mat3<F> {
+impl<F: FullFloat> Default for Mat3<F> {
     #[inline]
     fn default() -> Mat3<F> {
         Mat3::new( F::default(), F::default(), F::default(),
@@ -240,7 +239,7 @@ impl<F: Default> Default for Mat3<F> {
     }
 }
 
-impl<F: Default> Default for Mat4<F> {
+impl<F: FullFloat> Default for Mat4<F> {
     #[inline]
     fn default() -> Mat4<F> {
         Mat4::new( F::default(), F::default(), F::default(), F::default(),
@@ -252,7 +251,7 @@ impl<F: Default> Default for Mat4<F> {
 
 // -- zero --------------------------------------------------------------------
 
-impl<F: Zero> Mat2<F> {
+impl<F: FullFloat> Mat2<F> {
     #[inline]
     pub fn zero() -> Mat2<F>
     {
@@ -261,7 +260,7 @@ impl<F: Zero> Mat2<F> {
     }
 }
 
-impl<F: Zero> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     pub fn zero() -> Mat3<F>
     {
@@ -271,7 +270,7 @@ impl<F: Zero> Mat3<F> {
     }
 }
 
-impl<F: Zero> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     pub fn zero() -> Mat4<F>
     {
@@ -284,7 +283,7 @@ impl<F: Zero> Mat4<F> {
 
 // -- identity ---------------------------------------------------------------
 
-impl<F: Zero + One> Mat2<F> {
+impl<F: FullFloat> Mat2<F> {
     #[inline]
     pub fn identity() -> Mat2<F>
     {
@@ -293,7 +292,7 @@ impl<F: Zero + One> Mat2<F> {
     }
 }
 
-impl<F: Zero + One> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     pub fn identity() -> Mat3<F>
     {
@@ -303,7 +302,7 @@ impl<F: Zero + One> Mat3<F> {
     }
 }
 
-impl<F: Zero + One> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     pub fn identity() -> Mat4<F>
     {
@@ -316,14 +315,14 @@ impl<F: Zero + One> Mat4<F> {
 
 // -- transpose ---------------------------------------------------------------
 
-impl<F> Mat2<F> {
+impl<F: FullFloat> Mat2<F> {
     #[inline]
     pub fn transpose(&mut self) {
         ::std::mem::swap(&mut self.x.y, &mut self.y.x);
     }
 }
 
-impl<F> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     pub fn transpose(&mut self) {
         ::std::mem::swap(&mut self.x.y, &mut self.y.x);
@@ -332,7 +331,7 @@ impl<F> Mat3<F> {
     }
 }
 
-impl<F> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     pub fn transpose(&mut self) {
         ::std::mem::swap(&mut self.x.y, &mut self.y.x);
@@ -346,8 +345,7 @@ impl<F> Mat4<F> {
 
 // -- inverse -----------------------------------------------------------------
 
-impl<F: Copy + One + Zero + PartialEq
-     + Neg<Output=F> + Div<Output=F> + Sub<Output=F> + Mul<Output=F>> Mat2<F> {
+impl<F: FullFloat> Mat2<F> {
     #[inline]
     pub fn determinant(&self) -> F {
         self.x.x * self.y.y - self.y.x * self.x.y
@@ -362,8 +360,7 @@ impl<F: Copy + One + Zero + PartialEq
     }
 }
 
-impl<F: Copy + One + Zero + PartialEq
-     + Neg<Output=F> + Div<Output=F> + Sub<Output=F> + Mul<Output=F>> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     pub fn determinant(&self) -> F {
         self.x.x * (self.y.y * self.z.z - self.z.y * self.y.z)
@@ -384,8 +381,7 @@ impl<F: Copy + One + Zero + PartialEq
     }
 }
 
-impl<F: Copy + One + Zero + PartialEq
-     + Neg<Output=F> + Div<Output=F> + Sub<Output=F> + Mul<Output=F>> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     pub fn determinant(&self) -> F {
         self.x.x * Mat3::new( self.y.y, self.z.y, self.p.y,
@@ -430,7 +426,7 @@ impl<F: Copy + One + Zero + PartialEq
 
 // -- add ---------------------------------------------------------------------
 
-impl<'a, 'b, F: Copy + Add<F,Output=F>> Add<&'b Mat2<F>> for &'a Mat2<F> {
+impl<'a, 'b, F: FullFloat> Add<&'b Mat2<F>> for &'a Mat2<F> {
     type Output = Mat2<F>;
 
     #[inline]
@@ -440,7 +436,7 @@ impl<'a, 'b, F: Copy + Add<F,Output=F>> Add<&'b Mat2<F>> for &'a Mat2<F> {
     }
 }
 
-impl<'a, 'b, F: Copy + Add<F,Output=F>> Add<&'b Mat3<F>> for &'a Mat3<F> {
+impl<'a, 'b, F: FullFloat> Add<&'b Mat3<F>> for &'a Mat3<F> {
     type Output = Mat3<F>;
 
     #[inline]
@@ -451,7 +447,7 @@ impl<'a, 'b, F: Copy + Add<F,Output=F>> Add<&'b Mat3<F>> for &'a Mat3<F> {
     }
 }
 
-impl<'a, 'b, F: Copy + Add<F,Output=F>> Add<&'b Mat4<F>> for &'a Mat4<F> {
+impl<'a, 'b, F: FullFloat> Add<&'b Mat4<F>> for &'a Mat4<F> {
     type Output = Mat4<F>;
 
     #[inline]
@@ -466,7 +462,7 @@ impl<'a, 'b, F: Copy + Add<F,Output=F>> Add<&'b Mat4<F>> for &'a Mat4<F> {
 
 // -- multiply by scalar ------------------------------------------------------
 
-impl<'a, F: Copy + Mul<F,Output=F>> Mul<F> for &'a Mat2<F> {
+impl<'a, F: FullFloat> Mul<F> for &'a Mat2<F> {
     type Output = Mat2<F>;
 
     #[inline]
@@ -476,7 +472,7 @@ impl<'a, F: Copy + Mul<F,Output=F>> Mul<F> for &'a Mat2<F> {
     }
 }
 
-impl<'a, F: Copy + Mul<F,Output=F>> Mul<F> for &'a Mat3<F> {
+impl<'a, F: FullFloat> Mul<F> for &'a Mat3<F> {
     type Output = Mat3<F>;
 
     #[inline]
@@ -487,7 +483,7 @@ impl<'a, F: Copy + Mul<F,Output=F>> Mul<F> for &'a Mat3<F> {
     }
 }
 
-impl<'a, F: Copy + Mul<F,Output=F>> Mul<F> for &'a Mat4<F> {
+impl<'a, F: FullFloat> Mul<F> for &'a Mat4<F> {
     type Output = Mat4<F>;
 
     #[inline]
@@ -501,7 +497,7 @@ impl<'a, F: Copy + Mul<F,Output=F>> Mul<F> for &'a Mat4<F> {
 
 // -- multiply by matrix ------------------------------------------------------
 
-impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'b Mat2<F>> for &'a Mat2<F> {
+impl<'a, 'b, F: FullFloat> Mul<&'b Mat2<F>> for &'a Mat2<F> {
     type Output = Mat2<F>;
 
     #[inline]
@@ -512,7 +508,7 @@ impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'b Mat2<F>> for &
     }
 }
 
-impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'b Mat3<F>> for &'a Mat3<F> {
+impl<'a, 'b, F: FullFloat> Mul<&'b Mat3<F>> for &'a Mat3<F> {
     type Output = Mat3<F>;
 
     #[inline]
@@ -532,7 +528,7 @@ impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'b Mat3<F>> for &
     }
 }
 
-impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'b Mat4<F>> for &'a Mat4<F> {
+impl<'a, 'b, F: FullFloat> Mul<&'b Mat4<F>> for &'a Mat4<F> {
     type Output = Mat4<F>;
 
     #[inline]
@@ -562,7 +558,7 @@ impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'b Mat4<F>> for &
 
 // -- multiply by vector ------------------------------------------------------
 
-impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Vec2<F>> for &'b Mat2<F> {
+impl<'a, 'b, F: FullFloat> Mul<&'a Vec2<F>> for &'b Mat2<F> {
     type Output = Vec2<F>;
 
     #[inline]
@@ -572,7 +568,7 @@ impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Vec2<F>> for &
     }
 }
 
-impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Vec3<F>> for &'b Mat3<F> {
+impl<'a, 'b, F: FullFloat> Mul<&'a Vec3<F>> for &'b Mat3<F> {
     type Output = Vec3<F>;
 
     #[inline]
@@ -583,7 +579,7 @@ impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Vec3<F>> for &
     }
 }
 
-impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Vec4<F>> for &'b Mat4<F> {
+impl<'a, 'b, F: FullFloat> Mul<&'a Vec4<F>> for &'b Mat4<F> {
     type Output = Vec4<F>;
 
     #[inline]
@@ -597,7 +593,7 @@ impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Vec4<F>> for &
 
 // -- multiply vector by matrix -----------------------------------------------
 
-impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Mat2<F>> for &'a Vec2<F> {
+impl<'a, 'b, F: FullFloat> Mul<&'a Mat2<F>> for &'a Vec2<F> {
     type Output = Vec2<F>;
 
     #[inline]
@@ -607,7 +603,7 @@ impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Mat2<F>> for &
     }
 }
 
-impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Mat3<F>> for &'a Vec3<F> {
+impl<'a, 'b, F: FullFloat> Mul<&'a Mat3<F>> for &'a Vec3<F> {
     type Output = Vec3<F>;
 
     #[inline]
@@ -618,7 +614,7 @@ impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Mat3<F>> for &
     }
 }
 
-impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Mat4<F>> for &'a Vec4<F> {
+impl<'a, 'b, F: FullFloat> Mul<&'a Mat4<F>> for &'a Vec4<F> {
     type Output = Vec4<F>;
 
     #[inline]
@@ -632,14 +628,14 @@ impl<'a, 'b, F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Mul<&'a Mat4<F>> for &
 
 // -- characteristic tests ----------------------------------------------------
 
-impl<F: Zero + PartialEq> Mat2<F> {
+impl<F: FullFloat> Mat2<F> {
     #[inline]
     pub fn is_diagonal(&self) -> bool {
         self.x.y == F::zero() && self.y.x == F::zero()
     }
 }
 
-impl<F: Zero + PartialEq> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     pub fn is_diagonal(&self) -> bool {
         self.x.y == F::zero() && self.x.z == F::zero() &&
@@ -648,7 +644,7 @@ impl<F: Zero + PartialEq> Mat3<F> {
     }
 }
 
-impl<F: Zero + PartialEq> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     pub fn is_diagonal(&self) -> bool {
         self.x.y == F::zero() && self.x.z == F::zero() && self.x.w == F::zero() &&
@@ -658,7 +654,7 @@ impl<F: Zero + PartialEq> Mat4<F> {
     }
 }
 
-impl<F: PartialEq> Mat2<F> {
+impl<F: FullFloat> Mat2<F> {
     #[inline]
     pub fn is_symmetric(&self) -> bool {
         self.x.y == self.y.x
@@ -666,7 +662,7 @@ impl<F: PartialEq> Mat2<F> {
 }
 
 
-impl<F: PartialEq> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     pub fn is_symmetric(&self) -> bool {
         self.x.y == self.y.x &&
@@ -675,7 +671,7 @@ impl<F: PartialEq> Mat3<F> {
     }
 }
 
-impl<F: PartialEq> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     pub fn is_symmetric(&self) -> bool {
         self.x.y == self.y.x &&
@@ -687,14 +683,14 @@ impl<F: PartialEq> Mat4<F> {
     }
 }
 
-impl<F: Copy + PartialEq + Neg<Output=F>> Mat2<F> {
+impl<F: FullFloat> Mat2<F> {
     #[inline]
     pub fn is_skew_symmetric(&self) -> bool {
         self.x.y == -self.y.x
     }
 }
 
-impl<F: Copy + PartialEq + Neg<Output=F>> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     pub fn is_skew_symmetric(&self) -> bool {
         self.x.y == -self.y.x &&
@@ -703,7 +699,7 @@ impl<F: Copy + PartialEq + Neg<Output=F>> Mat3<F> {
     }
 }
 
-impl<F: Copy + PartialEq + Neg<Output=F>> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     pub fn is_skew_symmetric(&self) -> bool {
         self.x.y == -self.y.x &&
@@ -717,14 +713,14 @@ impl<F: Copy + PartialEq + Neg<Output=F>> Mat4<F> {
 
 // -- mat4 components ---------------------------------------------------------
 
-impl<F: Copy> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     pub fn get_translation(&self) -> Point3<F>
     {
         Point3(self.p.truncate_w())
     }
 }
 
-impl<F: One> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     pub fn set_translation(&mut self, p: Point3<F>)
     {
         self.p = From::from(p);
@@ -733,7 +729,7 @@ impl<F: One> Mat4<F> {
 
 // -- rotation matrices -------------------------------------------------------
 
-impl<F: Float> Mat2<F> {
+impl<F: FullFloat> Mat2<F> {
     #[inline]
     pub fn from_angle(theta: Angle<F>) -> Mat2<F> {
         let (s, c) = theta.as_radians().sin_cos();
@@ -744,7 +740,7 @@ impl<F: Float> Mat2<F> {
     }
 }
 
-impl<F: Float + One + Zero> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     pub fn from_angle_x(theta: Angle<F>) -> Mat3<F> {
         let (s, c) = theta.as_radians().sin_cos();
@@ -770,39 +766,23 @@ impl<F: Float + One + Zero> Mat3<F> {
     }
 }
 
-impl Mat3<f32> {
+impl<F: FullFloat> Mat3<F> {
     // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
     //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(axis: Direction3<f32>, theta: Angle<f32>) -> Mat3<f32> {
-        let axis: Vec3<f32> = From::from(axis);
-        let x = &axis.x;
-        let y = &axis.y;
-        let z = &axis.z;
+    pub fn rotate_axis_angle(axis: Direction3<F>, theta: Angle<F>) -> Mat3<F> {
+        let axis: Vec3<F> = From::from(axis);
+        let x = axis.x;
+        let y = axis.y;
+        let z = axis.z;
         let (s, c) = theta.as_radians().sin_cos();
-        let ic = 1.0 - c;
+        let ic = F::one() - c;
         Mat3::new( x*x*ic + c   , x*y*ic - z*s ,  x*z*ic + y*s,
                    y*x*ic + z*s , y*y*ic + c   ,  y*z*ic - x*s,
                    z*x*ic - y*s , z*y*ic + x*s ,  z*z*ic + c   )
     }
 }
 
-impl Mat3<f64> {
-    // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
-    //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(axis: Direction3<f64>, theta: Angle<f64>) -> Mat3<f64> {
-        let axis: Vec3<f64> = From::from(axis);
-        let x = &axis.x;
-        let y = &axis.y;
-        let z = &axis.z;
-        let (s, c) = theta.as_radians().sin_cos();
-        let ic = 1.0 - c;
-        Mat3::new( x*x*ic + c   , x*y*ic - z*s ,  x*z*ic + y*s,
-                   y*x*ic + z*s , y*y*ic + c   ,  y*z*ic - x*s,
-                   z*x*ic - y*s , z*y*ic + x*s ,  z*z*ic + c   )
-    }
-}
-
-impl<F: Float + One + Zero> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     pub fn from_angle_x(theta: Angle<F>) -> Mat4<F> {
         let (s, c) = theta.as_radians().sin_cos();
@@ -831,113 +811,64 @@ impl<F: Float + One + Zero> Mat4<F> {
     }
 }
 
-impl Mat4<f32> {
+impl<F: FullFloat> Mat4<F> {
     // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
     //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(axis: Direction3<f32>, theta: Angle<f32>) -> Mat4<f32> {
-        let axis: Vec3<f32> = From::from(axis);
-        let x = &axis.x;
-        let y = &axis.y;
-        let z = &axis.z;
+    pub fn rotate_axis_angle(axis: Direction3<F>, theta: Angle<F>) -> Mat4<F> {
+        let axis: Vec3<F> = From::from(axis);
+        let x = axis.x;
+        let y = axis.y;
+        let z = axis.z;
         let (s, c) = theta.as_radians().sin_cos();
-        let ic = 1.0 - c;
-        Mat4::new( x*x*ic + c  , x*y*ic - z*s, x*z*ic + y*s,  0.0,
-                   y*x*ic + z*s, y*y*ic + c  , y*z*ic - x*s,  0.0,
-                   z*x*ic - y*s, z*y*ic + x*s, z*z*ic + c  ,  0.0,
-                   0.0         , 0.0         , 0.0         ,  1.0 )
-    }
-}
-
-impl Mat4<f64> {
-    // https://en.wikipedia.org/w/index.php?title=Rotation_matrix
-    //  #Rotation_matrix_from_axis_and_angle
-    pub fn rotate_axis_angle(axis: Direction3<f64>, theta: Angle<f64>) -> Mat4<f64> {
-        let axis: Vec3<f64> = From::from(axis);
-        let x = &axis.x;
-        let y = &axis.y;
-        let z = &axis.z;
-        let (s, c) = theta.as_radians().sin_cos();
-        let ic = 1.0 - c;
-        Mat4::new( x*x*ic + c  , x*y*ic - z*s, x*z*ic + y*s,  0.0,
-                   y*x*ic + z*s, y*y*ic + c  , y*z*ic - x*s,  0.0,
-                   z*x*ic - y*s, z*y*ic + x*s, z*z*ic + c  ,  0.0,
-                   0.0         , 0.0         , 0.0         ,  1.0 )
+        let ic = F::one() - c;
+        Mat4::new( x*x*ic + c  , x*y*ic - z*s, x*z*ic + y*s,  F::zero(),
+                   y*x*ic + z*s, y*y*ic + c  , y*z*ic - x*s,  F::zero(),
+                   z*x*ic - y*s, z*y*ic + x*s, z*z*ic + c  ,  F::zero(),
+                   F::zero(),       F::zero(),    F::zero(),  F::one()  )
     }
 }
 
 // -- Reflection --------------------------------------------------------------
 
-impl Mat3<f32> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     /// Reflection matrix
-    pub fn reflect_origin_plane(a: Direction3<f32>) -> Mat3<f32> {
-        let a: Vec3<f32> = From::from(a);
-        let x: f32 = a.x * -2.0;
-        let y: f32 = a.y * -2.0;
-        let z: f32 = a.z * -2.0;
+    pub fn reflect_origin_plane(a: Direction3<F>) -> Mat3<F> {
+        let a: Vec3<F> = From::from(a);
+        let minus_two: F = NumCast::from(-2.0_f32).unwrap();
+        let x: F = a.x * minus_two;
+        let y: F = a.y * minus_two;
+        let z: F = a.z * minus_two;
         let axay = x * a.y;
         let axaz = x * a.z;
         let ayaz = y * a.z;
-        Mat3::new( x * a.x + 1.0,   axay,           axaz,
-                   axay,            y * a.y + 1.0,  ayaz,
-                   axaz,            ayaz,           z * a.z + 1.0 )
+        Mat3::new( x * a.x + F::one(), axay,               axaz,
+                   axay,               y * a.y + F::one(), ayaz,
+                   axaz,               ayaz,               z * a.z + F::one() )
     }
 }
 
-impl Mat3<f64> {
-    #[inline]
-    /// Reflection matrix
-    pub fn reflect_origin_plane(a: Direction3<f64>) -> Mat3<f64> {
-        let a: Vec3<f64> = From::from(a);
-        let x: f64 = a.x * -2.0;
-        let y: f64 = a.y * -2.0;
-        let z: f64 = a.z * -2.0;
-        let axay = x * a.y;
-        let axaz = x * a.z;
-        let ayaz = y * a.z;
-        Mat3::new( x * a.x + 1.0,   axay,           axaz,
-                   axay,            y * a.y + 1.0,  ayaz,
-                   axaz,            ayaz,           z * a.z + 1.0 )
-    }
-}
-
-impl Mat3<f32> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     /// Involution matrix
-    pub fn involve_origin_plane(a: Direction3<f32>) -> Mat3<f32> {
-        let a: Vec3<f32> = From::from(a);
-        let x: f32 = a.x * 2.0;
-        let y: f32 = a.y * 2.0;
-        let z: f32 = a.z * 2.0;
+    pub fn involve_origin_plane(a: Direction3<F>) -> Mat3<F> {
+        let a: Vec3<F> = From::from(a);
+        let two: F = NumCast::from(2.0_f32).unwrap();
+        let x: F = a.x * two;
+        let y: F = a.y * two;
+        let z: F = a.z * two;
         let axay = x * a.y;
         let axaz = x * a.z;
         let ayaz = y * a.z;
-        Mat3::new( x * a.x - 1.0,   axay,           axaz,
-                   axay,            y * a.y - 1.0,  ayaz,
-                   axaz,            ayaz,           z * a.z - 1.0 )
-    }
-}
-
-impl Mat3<f64> {
-    #[inline]
-    /// Involution matrix
-    pub fn involve_origin_plane(a: Direction3<f64>) -> Mat3<f64> {
-        let a: Vec3<f64> = From::from(a);
-        let x: f64 = a.x * 2.0;
-        let y: f64 = a.y * 2.0;
-        let z: f64 = a.z * 2.0;
-        let axay = x * a.y;
-        let axaz = x * a.z;
-        let ayaz = y * a.z;
-        Mat3::new( x * a.x - 1.0,   axay,           axaz,
-                   axay,            y * a.y - 1.0,  ayaz,
-                   axaz,            ayaz,           z * a.z - 1.0 )
+        Mat3::new( x * a.x - F::one(), axay,               axaz,
+                   axay,               y * a.y - F::one(), ayaz,
+                   axaz,               ayaz,               z * a.z - F::one() )
     }
 }
 
 // -- Scale -------------------------------------------------------------------
 
-impl<F: Zero + One + Copy + Mul<F,Output=F>> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     #[inline]
     /// Scale matrix
     pub fn scale(a: &Vec3<F>) -> Mat3<F> {
@@ -947,7 +878,7 @@ impl<F: Zero + One + Copy + Mul<F,Output=F>> Mat3<F> {
     }
 }
 
-impl<F: Zero + Copy> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     #[inline]
     /// Scale matrix
     pub fn scale(a: &Vec4<F>) -> Mat4<F> {
@@ -959,119 +890,62 @@ impl<F: Zero + Copy> Mat4<F> {
 }
 
 
-impl Mat3<f32> {
+impl<F: FullFloat> Mat3<F> {
     /// Scale along vector
-    pub fn scale_in_direction(mut s: f32, a: Direction3<f32>) -> Mat3<f32> {
-        let a: Vec3<f32> = From::from(a);
-        s -= 1.0;
+    pub fn scale_in_direction(mut s: F, a: Direction3<F>) -> Mat3<F> {
+        let a: Vec3<F> = From::from(a);
+        s -= F::one();
         let x = a.x * s;
         let y = a.y * s;
         let z = a.z * s;
         let axay = x * a.y;
         let axaz = x * a.z;
         let ayaz = y * a.z;
-        Mat3::new(x * a.x + 1.0,  axay,           axaz,
-                  axay,           y * a.y + 1.0,  ayaz,
-                  axaz,           ayaz,           z * a.z + 1.0)
+        Mat3::new(x * a.x + F::one(), axay,               axaz,
+                  axay,               y * a.y + F::one(), ayaz,
+                  axaz,               ayaz,               z * a.z + F::one())
     }
 }
 
-impl Mat3<f64> {
-    /// Scale along vector
-    pub fn scale_in_direction(mut s: f64, a: Direction3<f64>) -> Mat3<f64> {
-        let a: Vec3<f64> = From::from(a);
-        s -= 1.0;
-        let x = a.x * s;
-        let y = a.y * s;
-        let z = a.z * s;
-        let axay = x * a.y;
-        let axaz = x * a.z;
-        let ayaz = y * a.z;
-        Mat3::new(x * a.x + 1.0,  axay,           axaz,
-                  axay,           y * a.y + 1.0,  ayaz,
-                  axaz,           ayaz,           z * a.z + 1.0)
-    }
-}
-
-impl Mat4<f32> {
-    pub fn get_x_scale(&self) -> f32 {
+impl<F: FullFloat> Mat4<F> {
+    pub fn get_x_scale(&self) -> F {
         let scale = (self.x.x * self.x.x
                      + self.y.x * self.y.x
                      + self.z.x * self.z.x).sqrt();
-        if self.x.x < 0.0 { -scale } else { scale }
+        if self.x.x < F::zero() { -scale } else { scale }
     }
 
-    pub fn get_y_scale(&self) -> f32 {
+    pub fn get_y_scale(&self) -> F {
         let scale = (self.x.y * self.x.y
                      + self.y.y * self.y.y
                      + self.z.y * self.z.y).sqrt();
-        if self.y.y < 0.0 { -scale } else { scale }
+        if self.y.y < F::zero() { -scale } else { scale }
     }
 
-    pub fn get_z_scale(&self) -> f32 {
+    pub fn get_z_scale(&self) -> F {
         let scale = (self.x.z * self.x.z
                      + self.y.z * self.y.z
                      + self.z.z * self.z.z).sqrt();
-        if self.z.z < 0.0 { -scale } else { scale }
-    }
-}
-
-impl Mat4<f64> {
-    pub fn get_x_scale(&self) -> f64 {
-        let scale = (self.x.x * self.x.x
-                     + self.y.x * self.y.x
-                     + self.z.x * self.z.x).sqrt();
-        if self.x.x < 0.0 { -scale } else { scale }
-    }
-
-    pub fn get_y_scale(&self) -> f64 {
-        let scale = (self.x.y * self.x.y
-                     + self.y.y * self.y.y
-                     + self.z.y * self.z.y).sqrt();
-        if self.y.y < 0.0 { -scale } else { scale }
-    }
-
-    pub fn get_z_scale(&self) -> f64 {
-        let scale = (self.x.z * self.x.z
-                     + self.y.z * self.y.z
-                     + self.z.z * self.z.z).sqrt();
-        if self.z.z < 0.0 { -scale } else { scale }
+        if self.z.z < F::zero() { -scale } else { scale }
     }
 }
 
 // -- Skew --------------------------------------------------------------------
 
-impl Mat3<f32> {
+impl<F: FullFloat> Mat3<F> {
     /// Skew by give given angle in the given direction a, based on the projected
     /// length along the proj direction.  direction and proj MUST BE PERPENDICULAR
     /// or else results are undefined.
-    pub fn skew(angle: f32, a: Direction3<f32>, proj: Direction3<f32>) -> Mat3<f32> {
-        let a: Vec3<f32> = From::from(a);
-        let b: Vec3<f32> = From::from(proj);
-        let t = angle.tan();
-        let x: f32 = a.x * t;
-        let y: f32 = a.y * t;
-        let z: f32 = a.z * t;
-        Mat3::new(x * b.x + 1.0, x * b.y,       x * b.z,
-                  y * b.x,       y * b.y + 1.0, y * b.z,
-                  z * b.x,       z * b.y,       z * b.z + 1.0)
-    }
-}
-
-impl Mat3<f64> {
-    /// Skew by give given angle in the given direction a, based on the projected
-    /// length along the proj direction.  direction and proj MUST BE PERPENDICULAR
-    /// or else results are undefined.
-    pub fn skew(angle: f64, a: Direction3<f64>, proj: Direction3<f64>) -> Mat3<f64> {
-        let a: Vec3<f64> = From::from(a);
-        let b: Vec3<f64> = From::from(proj);
-        let t = angle.tan();
-        let x: f64 = a.x * t;
-        let y: f64 = a.y * t;
-        let z: f64 = a.z * t;
-        Mat3::new(x * b.x + 1.0, x * b.y,       x * b.z,
-                  y * b.x,       y * b.y + 1.0, y * b.z,
-                  z * b.x,       z * b.y,       z * b.z + 1.0)
+    pub fn skew(angle: Angle<F>, a: Direction3<F>, proj: Direction3<F>) -> Mat3<F> {
+        let a: Vec3<F> = From::from(a);
+        let b: Vec3<F> = From::from(proj);
+        let t = angle.as_radians().tan();
+        let x: F = a.x * t;
+        let y: F = a.y * t;
+        let z: F = a.z * t;
+        Mat3::new(x * b.x + F::one(), x * b.y,            x * b.z,
+                  y * b.x,            y * b.y + F::one(), y * b.z,
+                  z * b.x,            z * b.y,            z * b.z + F::one())
     }
 }
 
@@ -1120,19 +994,10 @@ impl From<Mat4<f64>> for Mat4<f32> {
     }
 }
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Mat2<F> {
-    type Flt = F;
-
-    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
-        self.x.approx_eq_ulps(&other.x, ulps) &&
-            self.y.approx_eq_ulps(&other.y, ulps)
-    }
-}
-
 // ----------------------------------------------------------------------------
 // Convert between sizes
 
-impl<F: Copy> Mat4<F> {
+impl<F: FullFloat> Mat4<F> {
     pub fn as_mat3(&self) -> Mat3<F> {
         Mat3 {
             x: Vec3::new(self.x.x, self.x.y, self.x.z),
@@ -1142,7 +1007,7 @@ impl<F: Copy> Mat4<F> {
     }
 }
 
-impl<F: Copy + Zero + One> Mat3<F> {
+impl<F: FullFloat> Mat3<F> {
     pub fn as_mat4(&self) -> Mat4<F> {
         Mat4 {
             x: Vec4::new(self.x.x, self.x.y, self.x.z, F::zero()),
@@ -1154,8 +1019,18 @@ impl<F: Copy + Zero + One> Mat3<F> {
 }
 
 // ----------------------------------------------------------------------------
+// ApproxEq
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Mat3<F> {
+impl<F: FullFloat> ApproxEqUlps for Mat2<F> {
+    type Flt = F;
+
+    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
+        self.x.approx_eq_ulps(&other.x, ulps) &&
+            self.y.approx_eq_ulps(&other.y, ulps)
+    }
+}
+
+impl<F: FullFloat> ApproxEqUlps for Mat3<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
@@ -1165,7 +1040,7 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Mat3<F> {
     }
 }
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Mat4<F> {
+impl<F: FullFloat> ApproxEqUlps for Mat4<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
@@ -1185,132 +1060,132 @@ mod tests {
 
     #[test]
     fn test_index() {
-        let m: Mat2<u32> = Mat2::new(1, 2, 3, 4);
-        assert_eq!(m[(0,0)], 1);
-        assert_eq!(m[(0,1)], 2);
-        assert_eq!(m[(1,0)], 3);
-        assert_eq!(m[(1,1)], 4);
+        let m: Mat2<f32> = Mat2::new(1.0, 2.0, 3.0, 4.0);
+        assert_eq!(m[(0,0)], 1.0);
+        assert_eq!(m[(0,1)], 2.0);
+        assert_eq!(m[(1,0)], 3.0);
+        assert_eq!(m[(1,1)], 4.0);
     }
 
     #[test]
     fn test_transpose() {
-        let mut m: Mat2<u32> = Mat2::new(1, 2,
-                                         3, 4);
+        let mut m: Mat2<f32> = Mat2::new(1.0, 2.0,
+                                         3.0, 4.0);
         m.transpose();
-        assert_eq!(m, Mat2::new(1, 3,
-                                2, 4));
+        assert_eq!(m, Mat2::new(1.0, 3.0,
+                                2.0, 4.0));
 
-        let mut m: Mat3<u32> = Mat3::new(1, 2, 3,
-                                         4, 5, 6,
-                                         7, 8, 9);
+        let mut m: Mat3<f32> = Mat3::new(1.0, 2.0, 3.0,
+                                         4.0, 5.0, 6.0,
+                                         7.0, 8.0, 9.0);
         m.transpose();
-        assert_eq!(m, Mat3::new(1, 4, 7,
-                                2, 5, 8,
-                                3, 6, 9));
+        assert_eq!(m, Mat3::new(1.0, 4.0, 7.0,
+                                2.0, 5.0, 8.0,
+                                3.0, 6.0, 9.0));
 
-        let mut m: Mat4<u32> = Mat4::new(1, 2, 3, 4,
-                                         5, 6, 7, 8,
-                                         9, 10, 11, 12,
-                                         13, 14, 15, 16);
+        let mut m: Mat4<f32> = Mat4::new(1.0, 2.0, 3.0, 4.0,
+                                         5.0, 6.0, 7.0, 8.0,
+                                         9.0, 10.0, 11.0, 12.0,
+                                         13.0, 14.0, 15.0, 16.0);
         m.transpose();
-        assert_eq!(m, Mat4::new(1, 5, 9, 13,
-                                2, 6, 10, 14,
-                                3, 7, 11, 15,
-                                4, 8, 12, 16));
+        assert_eq!(m, Mat4::new(1.0, 5.0, 9.0, 13.0,
+                                2.0, 6.0, 10.0, 14.0,
+                                3.0, 7.0, 11.0, 15.0,
+                                4.0, 8.0, 12.0, 16.0));
     }
 
     #[test]
     fn test_mul_mat() {
-        let left: Mat2<u32> = Mat2::new(1, 2, 3, 4);
-        let right: Mat2<u32> = Mat2::new(6, 7, 8, 9);
+        let left: Mat2<f32> = Mat2::new(1.0, 2.0, 3.0, 4.0);
+        let right: Mat2<f32> = Mat2::new(6.0, 7.0, 8.0, 9.0);
         let product = &left * &right;
-        assert_eq!(product, Mat2::new(22, 25,
-                                      50, 57));
+        assert_eq!(product, Mat2::new(22.0, 25.0,
+                                      50.0, 57.0));
 
-        let left: Mat3<u32> = Mat3::new(1, 2, 3,
-                                        4, 5, 6,
-                                        7, 8, 9);
-        let right: Mat3<u32> = Mat3::new(10, 11, 12,
-                                         13, 14, 15,
-                                         16, 17, 18);
+        let left: Mat3<f32> = Mat3::new(1.0, 2.0, 3.0,
+                                        4.0, 5.0, 6.0,
+                                        7.0, 8.0, 9.0);
+        let right: Mat3<f32> = Mat3::new(10.0, 11.0, 12.0,
+                                         13.0, 14.0, 15.0,
+                                         16.0, 17.0, 18.0);
         let product = &left * &right;
-        assert_eq!(product[(0,0)], 84);
-        assert_eq!(product[(0,1)], 90);
-        assert_eq!(product[(0,2)], 96);
-        assert_eq!(product[(1,0)], 201);
-        assert_eq!(product[(1,1)], 216);
-        assert_eq!(product[(1,2)], 231);
-        assert_eq!(product[(2,0)], 318);
-        assert_eq!(product[(2,1)], 342);
-        assert_eq!(product[(2,2)], 366);
+        assert_eq!(product[(0,0)], 84.0);
+        assert_eq!(product[(0,1)], 90.0);
+        assert_eq!(product[(0,2)], 96.0);
+        assert_eq!(product[(1,0)], 201.0);
+        assert_eq!(product[(1,1)], 216.0);
+        assert_eq!(product[(1,2)], 231.0);
+        assert_eq!(product[(2,0)], 318.0);
+        assert_eq!(product[(2,1)], 342.0);
+        assert_eq!(product[(2,2)], 366.0);
 
-        let left: Mat4<u32> = Mat4::new(1, 2, 3, 4,
-                                        4, 3, 2, 1,
-                                        5, 6, 2, 4,
-                                        7, 1, 0, 3);
-        let right: Mat4<u32> = Mat4::new(1, 6, 5, 2,
-                                         3, 3, 3, 3,
-                                         7, 8, 4, 1,
-                                         9, 2, 0, 5);
+        let left: Mat4<f32> = Mat4::new(1.0, 2.0, 3.0, 4.0,
+                                        4.0, 3.0, 2.0, 1.0,
+                                        5.0, 6.0, 2.0, 4.0,
+                                        7.0, 1.0, 0.0, 3.0);
+        let right: Mat4<f32> = Mat4::new(1.0, 6.0, 5.0, 2.0,
+                                         3.0, 3.0, 3.0, 3.0,
+                                         7.0, 8.0, 4.0, 1.0,
+                                         9.0, 2.0, 0.0, 5.0);
         let product = &left * &right;
-        assert_eq!(product[(0,0)], 64);
-        assert_eq!(product[(0,1)], 44);
-        assert_eq!(product[(0,2)], 23);
-        assert_eq!(product[(0,3)], 31);
-        assert_eq!(product[(1,0)], 36);
-        assert_eq!(product[(1,1)], 51);
-        assert_eq!(product[(1,2)], 37);
-        assert_eq!(product[(1,3)], 24);
-        assert_eq!(product[(2,0)], 73);
-        assert_eq!(product[(2,1)], 72);
-        assert_eq!(product[(2,2)], 51);
-        assert_eq!(product[(2,3)], 50);
-        assert_eq!(product[(3,0)], 37);
-        assert_eq!(product[(3,1)], 51);
-        assert_eq!(product[(3,2)], 38);
-        assert_eq!(product[(3,3)], 32);
+        assert_eq!(product[(0,0)], 64.0);
+        assert_eq!(product[(0,1)], 44.0);
+        assert_eq!(product[(0,2)], 23.0);
+        assert_eq!(product[(0,3)], 31.0);
+        assert_eq!(product[(1,0)], 36.0);
+        assert_eq!(product[(1,1)], 51.0);
+        assert_eq!(product[(1,2)], 37.0);
+        assert_eq!(product[(1,3)], 24.0);
+        assert_eq!(product[(2,0)], 73.0);
+        assert_eq!(product[(2,1)], 72.0);
+        assert_eq!(product[(2,2)], 51.0);
+        assert_eq!(product[(2,3)], 50.0);
+        assert_eq!(product[(3,0)], 37.0);
+        assert_eq!(product[(3,1)], 51.0);
+        assert_eq!(product[(3,2)], 38.0);
+        assert_eq!(product[(3,3)], 32.0);
     }
 
     #[test]
     fn test_mul_vec() {
-        let left: Mat2<u32> = Mat2::new(1, 2,
-                                        3, 4);
-        let right: Vec2<u32> = Vec2::new(10, 20);
+        let left: Mat2<f32> = Mat2::new(1.0, 2.0,
+                                        3.0, 4.0);
+        let right: Vec2<f32> = Vec2::new(10.0, 20.0);
         let product = &left * &right;
-        assert_eq!(product[0], 50);
-        assert_eq!(product[1], 110);
+        assert_eq!(product[0], 50.0);
+        assert_eq!(product[1], 110.0);
         let product = &right * &left;
-        assert_eq!(product[0], 70);
-        assert_eq!(product[1], 100);
+        assert_eq!(product[0], 70.0);
+        assert_eq!(product[1], 100.0);
 
-        let left: Mat3<u32> = Mat3::new(1, 2, 3,
-                                        4, 5, 6,
-                                        7, 8, 9);
-        let right: Vec3<u32> = Vec3::new(10, 20, 30);
+        let left: Mat3<f32> = Mat3::new(1.0, 2.0, 3.0,
+                                        4.0, 5.0, 6.0,
+                                        7.0, 8.0, 9.0);
+        let right: Vec3<f32> = Vec3::new(10.0, 20.0, 30.0);
         let product = &left * &right;
-        assert_eq!(product[0], 140);
-        assert_eq!(product[1], 320);
-        assert_eq!(product[2], 500);
+        assert_eq!(product[0], 140.0);
+        assert_eq!(product[1], 320.0);
+        assert_eq!(product[2], 500.0);
         let product = &right * &left;
-        assert_eq!(product[0], 300);
-        assert_eq!(product[1], 360);
-        assert_eq!(product[2], 420);
+        assert_eq!(product[0], 300.0);
+        assert_eq!(product[1], 360.0);
+        assert_eq!(product[2], 420.0);
 
-        let left: Mat4<u32> = Mat4::new(1, 2, 3, 4,
-                                        5, 6, 7, 8,
-                                        9, 10, 11, 12,
-                                        13, 14, 15, 16);
-        let right: Vec4<u32> = Vec4::new(1, 2, 3, 4);
+        let left: Mat4<f32> = Mat4::new(1.0, 2.0, 3.0, 4.0,
+                                        5.0, 6.0, 7.0, 8.0,
+                                        9.0, 10.0, 11.0, 12.0,
+                                        13.0, 14.0, 15.0, 16.0);
+        let right: Vec4<f32> = Vec4::new(1.0, 2.0, 3.0, 4.0);
         let product = &left * &right;
-        assert_eq!(product[0], 30);
-        assert_eq!(product[1], 70);
-        assert_eq!(product[2], 110);
-        assert_eq!(product[3], 150);
+        assert_eq!(product[0], 30.0);
+        assert_eq!(product[1], 70.0);
+        assert_eq!(product[2], 110.0);
+        assert_eq!(product[3], 150.0);
         let product = &right * &left;
-        assert_eq!(product[0], 90);
-        assert_eq!(product[1], 100);
-        assert_eq!(product[2], 110);
-        assert_eq!(product[3], 120);
+        assert_eq!(product[0], 90.0);
+        assert_eq!(product[1], 100.0);
+        assert_eq!(product[2], 110.0);
+        assert_eq!(product[3], 120.0);
     }
 
     #[test]

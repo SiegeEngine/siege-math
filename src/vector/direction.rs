@@ -1,10 +1,8 @@
 
-use num_traits::identities::Zero;
-use num_traits::Float;
-use std::ops::{Deref, Mul, Sub, Add, Neg, DivAssign};
+use std::ops::{Deref, Neg};
 use float_cmp::{Ulps, ApproxEqUlps};
 use super::{Vec2, Vec3, Vec4};
-use Angle;
+use {Angle, FullFloat};
 
 /// Direction vector in 2-dimensions (normalized)
 #[repr(C)]
@@ -37,21 +35,21 @@ pub const Z_AXIS_F64: Direction3<f64> = Direction3::<f64>(
     Vec3::<f64> { x: 0.0, y: 0.0, z: 1.0 }
 );
 
-impl<F> Direction2<F> {
+impl<F: FullFloat> Direction2<F> {
     #[inline]
     pub fn new_isnormal(x: F, y: F) -> Direction2<F> {
         Direction2(Vec2::new(x,y))
     }
 }
 
-impl<F> Direction3<F> {
+impl<F: FullFloat> Direction3<F> {
     #[inline]
     pub fn new_isnormal(x: F, y: F, z: F) -> Direction3<F> {
         Direction3(Vec3::new(x,y,z))
     }
 }
 
-impl<F> Deref for Direction2<F> {
+impl<F: FullFloat> Deref for Direction2<F> {
     type Target = Vec2<F>;
 
     fn deref(&self) -> &Vec2<F>
@@ -60,7 +58,7 @@ impl<F> Deref for Direction2<F> {
     }
 }
 
-impl<F> Deref for Direction3<F> {
+impl<F: FullFloat> Deref for Direction3<F> {
     type Target = Vec3<F>;
 
     fn deref(&self) -> &Vec3<F>
@@ -69,23 +67,23 @@ impl<F> Deref for Direction3<F> {
     }
 }
 
-impl<F> From<Direction2<F>> for Vec2<F> {
+impl<F: FullFloat> From<Direction2<F>> for Vec2<F> {
     fn from(v: Direction2<F>) -> Vec2<F> {
         v.0
     }
 }
-impl<F> From<Direction3<F>> for Vec3<F> {
+impl<F: FullFloat> From<Direction3<F>> for Vec3<F> {
     fn from(v: Direction3<F>) -> Vec3<F> {
         v.0
     }
 }
-impl<F: Zero> From<Direction3<F>> for Vec4<F> {
+impl<F: FullFloat> From<Direction3<F>> for Vec4<F> {
     fn from(v: Direction3<F>) -> Vec4<F> {
         Vec4::new(v.0.x, v.0.y, v.0.z, F::zero())
     }
 }
 
-impl<F: Float + DivAssign> From<Vec2<F>> for Direction2<F> {
+impl<F: FullFloat> From<Vec2<F>> for Direction2<F> {
     fn from(mut v: Vec2<F>) -> Direction2<F> {
         let mag = v.magnitude();
         v.x /= mag;
@@ -93,7 +91,7 @@ impl<F: Float + DivAssign> From<Vec2<F>> for Direction2<F> {
         Direction2(v)
     }
 }
-impl<F: Float + DivAssign> From<Vec3<F>> for Direction3<F> {
+impl<F: FullFloat> From<Vec3<F>> for Direction3<F> {
     fn from(mut v: Vec3<F>) -> Direction3<F> {
         let mag = v.magnitude();
         v.x /= mag;
@@ -103,7 +101,7 @@ impl<F: Float + DivAssign> From<Vec3<F>> for Direction3<F> {
     }
 }
 
-impl<F: Copy + Zero + PartialEq> Direction3<F> {
+impl<F: FullFloat> Direction3<F> {
     #[allow(dead_code)]
     #[inline]
     fn from_vec4(v: Vec4<F>) -> Option<Direction3<F>> {
@@ -112,21 +110,21 @@ impl<F: Copy + Zero + PartialEq> Direction3<F> {
     }
 }
 
-impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F>> Direction3<F> {
+impl<F: FullFloat> Direction3<F> {
     #[inline]
     pub fn cross(&self, rhs: Direction3<F>) -> Direction3<F> {
         Direction3(self.0.cross(rhs.0))
     }
 }
 
-impl<F: Copy + Mul<F,Output=F> + Add<F,Output=F>> Direction3<F> {
+impl<F: FullFloat> Direction3<F> {
     #[inline]
     pub fn dot(&self, rhs: Direction3<F>) -> F {
         self.0.dot(rhs.0)
     }
 }
 
-impl<F: Neg<Output=F>> Neg for Direction3<F> {
+impl<F: FullFloat> Neg for Direction3<F> {
     type Output = Direction3<F>;
 
     #[inline]
@@ -135,7 +133,7 @@ impl<F: Neg<Output=F>> Neg for Direction3<F> {
     }
 }
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Direction2<F> {
+impl<F: FullFloat> ApproxEqUlps for Direction2<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
@@ -143,7 +141,7 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Direction2<F> {
     }
 }
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Direction3<F> {
+impl<F: FullFloat> ApproxEqUlps for Direction3<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
@@ -151,7 +149,7 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Direction3<F> {
     }
 }
 
-impl<F: Copy + Float> Direction3<F> {
+impl<F: FullFloat> Direction3<F> {
     pub fn from_lat_long(latitude: Angle<F>, longitude: Angle<F>) -> Direction3<F>
     {
         let (slat,clat) = latitude.as_radians().sin_cos();

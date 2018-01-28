@@ -1,4 +1,5 @@
 
+
 pub mod point;
 pub use self::point::{Point2, Point3};
 
@@ -7,12 +8,11 @@ pub use self::direction::{Direction2, Direction3,
                           X_AXIS_F32, Y_AXIS_F32, Z_AXIS_F32,
                           X_AXIS_F64, Y_AXIS_F64, Z_AXIS_F64};
 
-use num_traits::identities::Zero;
-use num_traits::Float;
 use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
                Add, AddAssign, Sub, SubAssign};
 use std::default::Default;
 use float_cmp::{Ulps, ApproxEqUlps};
+use FullFloat;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -43,7 +43,7 @@ pub struct Vec4<F> {
 
 // -- indexing ----------------------------------------------------------------
 
-impl<F> Index<usize> for Vec2<F> {
+impl<F: FullFloat> Index<usize> for Vec2<F> {
     type Output = F;
 
     #[inline]
@@ -56,7 +56,7 @@ impl<F> Index<usize> for Vec2<F> {
     }
 }
 
-impl<F> Index<usize> for Vec3<F> {
+impl<F: FullFloat> Index<usize> for Vec3<F> {
     type Output = F;
 
     #[inline]
@@ -70,7 +70,7 @@ impl<F> Index<usize> for Vec3<F> {
     }
 }
 
-impl<F> Index<usize> for Vec4<F> {
+impl<F: FullFloat> Index<usize> for Vec4<F> {
     type Output = F;
 
     #[inline]
@@ -85,7 +85,7 @@ impl<F> Index<usize> for Vec4<F> {
     }
 }
 
-impl<F> IndexMut<usize> for Vec2<F> {
+impl<F: FullFloat> IndexMut<usize> for Vec2<F> {
     #[inline]
     fn index_mut(&mut self, i: usize) -> &mut F {
         match i {
@@ -96,7 +96,7 @@ impl<F> IndexMut<usize> for Vec2<F> {
     }
 }
 
-impl<F> IndexMut<usize> for Vec3<F> {
+impl<F: FullFloat> IndexMut<usize> for Vec3<F> {
     #[inline]
     fn index_mut(&mut self, i: usize) -> &mut F {
         match i {
@@ -108,7 +108,7 @@ impl<F> IndexMut<usize> for Vec3<F> {
     }
 }
 
-impl<F> IndexMut<usize> for Vec4<F> {
+impl<F: FullFloat> IndexMut<usize> for Vec4<F> {
     #[inline]
     fn index_mut(&mut self, i: usize) -> &mut F {
         match i {
@@ -123,7 +123,7 @@ impl<F> IndexMut<usize> for Vec4<F> {
 
 // -- dropping a dimension ----------------------------------------------------
 
-impl<F: Copy> Vec3<F> {
+impl<F: FullFloat> Vec3<F> {
     #[inline]
     pub fn truncate_n(&self, n: usize) -> Vec2<F> {
         match n {
@@ -135,7 +135,7 @@ impl<F: Copy> Vec3<F> {
     }
 }
 
-impl<F: Copy> Vec3<F> {
+impl<F: FullFloat> Vec3<F> {
     #[inline]
     pub fn truncate_x(&self) -> Vec2<F> {
         Vec2::new(self.y, self.z)
@@ -150,7 +150,7 @@ impl<F: Copy> Vec3<F> {
     }
 }
 
-impl<F: Copy> Vec4<F> {
+impl<F: FullFloat> Vec4<F> {
     #[inline]
     pub fn truncate_n(&self, n: usize) -> Vec3<F> {
         match n {
@@ -163,7 +163,7 @@ impl<F: Copy> Vec4<F> {
     }
 }
 
-impl<F: Copy> Vec4<F> {
+impl<F: FullFloat> Vec4<F> {
     #[inline]
     pub fn truncate_x(&self) -> Vec3<F> {
         Vec3::new(self.y, self.z, self.w)
@@ -186,7 +186,7 @@ impl<F: Copy> Vec4<F> {
 
 macro_rules! impl_vector {
     ($VecN:ident { $first:ident, $($field:ident),* }) => {
-        impl<F> $VecN<F> {
+        impl<F: FullFloat> $VecN<F> {
             /// Construct a new vector
             #[inline]
             pub fn new($first: F, $($field: F),*) -> $VecN<F> {
@@ -194,28 +194,28 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Zero> $VecN<F> {
+        impl<F: FullFloat> $VecN<F> {
             #[inline]
             pub fn zero() -> $VecN<F> {
                 $VecN { $first: F::zero(), $($field: F::zero()),* }
             }
         }
 
-        impl<F: Default> Default for $VecN<F> {
+        impl<F: FullFloat> Default for $VecN<F> {
             #[inline]
             fn default() -> $VecN<F> {
                 $VecN { $first: F::default(), $($field: F::default()),* }
             }
         }
 
-        impl<F: Copy + Mul<F,Output=F> + Add<F,Output=F>> $VecN<F>{
+        impl<F: FullFloat> $VecN<F>{
             #[inline]
             pub fn squared_magnitude(&self) -> F {
                 self.$first * self.$first $(+ self.$field * self.$field)*
             }
         }
 
-        impl<F: Float> $VecN<F> {
+        impl<F: FullFloat> $VecN<F> {
             #[inline]
             pub fn magnitude(&self) -> F {
                 self.squared_magnitude().sqrt()
@@ -225,7 +225,7 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Copy + Mul<F,Output=F>> Mul<F> for $VecN<F> {
+        impl<F: FullFloat> Mul<F> for $VecN<F> {
             type Output = $VecN<F>;
 
             #[inline]
@@ -237,7 +237,7 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Copy + MulAssign<F>> MulAssign<F> for $VecN<F> {
+        impl<F: FullFloat> MulAssign<F> for $VecN<F> {
             #[inline]
             fn mul_assign(&mut self, rhs: F) {
                 self.$first *= rhs;
@@ -245,7 +245,7 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Copy + Div<F,Output=F>> Div<F> for $VecN<F> {
+        impl<F: FullFloat> Div<F> for $VecN<F> {
             type Output = $VecN<F>;
 
             #[inline]
@@ -257,7 +257,7 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Copy + DivAssign<F>> DivAssign<F> for $VecN<F> {
+        impl<F: FullFloat> DivAssign<F> for $VecN<F> {
             #[inline]
             fn div_assign(&mut self, rhs: F) {
                 self.$first /= rhs;
@@ -265,7 +265,7 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Neg<Output=F>> Neg for $VecN<F> {
+        impl<F: FullFloat> Neg for $VecN<F> {
             type Output = $VecN<F>;
 
             #[inline]
@@ -277,7 +277,7 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Add<Output=F>> Add for $VecN<F> {
+        impl<F: FullFloat> Add for $VecN<F> {
             type Output = $VecN<F>;
 
             #[inline]
@@ -289,7 +289,7 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Copy + AddAssign<F>> AddAssign<$VecN<F>> for $VecN<F> {
+        impl<F: FullFloat> AddAssign<$VecN<F>> for $VecN<F> {
             #[inline]
             fn add_assign(&mut self, other: $VecN<F>) {
                 self.$first += other.$first;
@@ -297,7 +297,7 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Sub<Output=F>> Sub for $VecN<F> {
+        impl<F: FullFloat> Sub for $VecN<F> {
             type Output = $VecN<F>;
 
             #[inline]
@@ -309,7 +309,7 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Copy + SubAssign<F>> SubAssign<$VecN<F>> for $VecN<F> {
+        impl<F: FullFloat> SubAssign<$VecN<F>> for $VecN<F> {
             #[inline]
             fn sub_assign(&mut self, other: $VecN<F>) {
                 self.$first -= other.$first;
@@ -317,7 +317,7 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Copy + Mul<F,Output=F> + Add<F,Output=F>> $VecN<F> {
+        impl<F: FullFloat> $VecN<F> {
             #[inline]
             pub fn dot(&self, rhs: $VecN<F>) -> F {
                 self.$first * rhs.$first
@@ -325,15 +325,14 @@ macro_rules! impl_vector {
             }
         }
 
-        impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F>> $VecN<F> {
+        impl<F: FullFloat> $VecN<F> {
             #[inline]
             pub fn project_onto(&self, axis: $VecN<F>) -> $VecN<F> {
                 axis * (self.dot(axis) / axis.dot(axis))
             }
         }
 
-        impl<F: Copy + Mul<F,Output=F> + Div<F,Output=F> + Add<F,Output=F> + Sub<F,Output=F>>
-            $VecN<F>
+        impl<F: FullFloat> $VecN<F>
         {
             #[inline]
             pub fn reject_onto(&self, axis: $VecN<F>) -> $VecN<F> {
@@ -349,7 +348,7 @@ impl_vector!(Vec4 { x, y, z, w });
 
 // ----------------------------------------------------------------------------
 
-impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F>> Vec3<F> {
+impl<F: FullFloat> Vec3<F> {
     #[inline]
     pub fn cross(&self, rhs: Vec3<F>) -> Vec3<F> {
         Vec3::new(
@@ -360,7 +359,7 @@ impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F>> Vec3<F> {
     }
 }
 
-impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F> + Add<F,Output=F>> Vec3<F> {
+impl<F: FullFloat> Vec3<F> {
     #[inline]
     pub fn triple_product(&self, b: Vec3<F>, c: Vec3<F>) -> F {
         self.cross(b).dot(c)
@@ -368,18 +367,47 @@ impl<F: Copy + Mul<F,Output=F> + Sub<F,Output=F> + Add<F,Output=F>> Vec3<F> {
 }
 
 // ----------------------------------------------------------------------------
+// Shortening
 
-impl<F> From<Vec4<F>> for Vec3<F> {
+impl<F: FullFloat> From<Vec4<F>> for Vec3<F> {
     fn from(v: Vec4<F>) -> Vec3<F> {
         Vec3 { x: v.x, y: v.y, z: v.z }
     }
 }
 
-impl<F> From<Vec3<F>> for Vec2<F> {
+impl<F: FullFloat> From<Vec3<F>> for Vec2<F> {
     fn from(v: Vec3<F>) -> Vec2<F> {
         Vec2 { x: v.x, y: v.y }
     }
 }
+
+// ----------------------------------------------------------------------------
+// casting between float types
+
+/*
+Unfortunately I cant get these to work because F and G could be the same type
+and that collides with an impl in the standard library.  I have not figured
+out how to tell rust that F and G are not the same type.
+
+impl<F: FullFloat, G: FullFloat> From<Vec2<F>> for Vec2<G>
+{
+    fn from(v: Vec2<F>) -> Vec2<G> {
+        Vec2 { x: v.x.as_(), y: v.y.as_() }
+    }
+}
+
+impl<F: FullFloat, G: FullFloat> From<Vec3<F>> for Vec3<G> {
+    fn from(v: Vec3<F>) -> Vec3<G> {
+        Vec3 { x: v.x.as_(), y: v.y.as_(), z: v.z.as_() }
+    }
+}
+
+impl<F: FullFloat, G: FullFloat> From<Vec4<F>> for Vec4<G> {
+    fn from(v: Vec4<F>) -> Vec4<G> {
+        Vec4 { x: v.x.as_(), y: v.y.as_(), z: v.z.as_(), w: v.w.as_() }
+    }
+}
+*/
 
 impl From<Vec2<f64>> for Vec2<f32> {
     fn from(v: Vec2<f64>) -> Vec2<f32> {
@@ -418,8 +446,9 @@ impl From<Vec4<f32>> for Vec4<f64> {
 }
 
 // ----------------------------------------------------------------------------
+// Approx Eq
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Vec2<F> {
+impl<F: FullFloat> ApproxEqUlps for Vec2<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
@@ -428,7 +457,7 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Vec2<F> {
     }
 }
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Vec3<F> {
+impl<F: FullFloat> ApproxEqUlps for Vec3<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
@@ -438,7 +467,7 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Vec3<F> {
     }
 }
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Vec4<F> {
+impl<F: FullFloat> ApproxEqUlps for Vec4<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {

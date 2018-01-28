@@ -1,8 +1,8 @@
 
-use num_traits::identities::One;
 use std::ops::{Deref, Sub, Add};
 use float_cmp::{Ulps, ApproxEqUlps};
 use super::{Vec2, Vec3, Vec4};
+use FullFloat;
 
 /// Point vector in 2-dimensions
 #[repr(C)]
@@ -17,21 +17,23 @@ pub struct Point2<F>(pub Vec2<F>);
 pub struct Point3<F>(pub Vec3<F>);
 
 
-impl<F> Point2<F> {
+impl<F: FullFloat> Point2<F> {
     #[inline]
     pub fn new(x: F, y: F) -> Point2<F> {
         Point2(Vec2::new(x,y))
     }
 }
 
-impl<F> Point3<F> {
+impl<F: FullFloat> Point3<F> {
     #[inline]
     pub fn new(x: F, y: F, z: F) -> Point3<F> {
         Point3(Vec3::new(x,y,z))
     }
 }
 
-impl<F> Deref for Point2<F> {
+// ----------------------------------------------------------------------------
+
+impl<F: FullFloat> Deref for Point2<F> {
     type Target = Vec2<F>;
 
     fn deref(&self) -> &Vec2<F>
@@ -40,7 +42,7 @@ impl<F> Deref for Point2<F> {
     }
 }
 
-impl<F> Deref for Point3<F> {
+impl<F: FullFloat> Deref for Point3<F> {
     type Target = Vec3<F>;
 
     fn deref(&self) -> &Vec3<F>
@@ -49,56 +51,53 @@ impl<F> Deref for Point3<F> {
     }
 }
 
+// ----------------------------------------------------------------------------
 
-impl<F> From<Point2<F>> for Vec2<F> {
+impl<F: FullFloat> From<Point2<F>> for Vec2<F> {
     fn from(v: Point2<F>) -> Vec2<F> {
         v.0
     }
 }
-impl<F> From<Point3<F>> for Vec3<F> {
+impl<F: FullFloat> From<Point3<F>> for Vec3<F> {
     fn from(v: Point3<F>) -> Vec3<F> {
         v.0
     }
 }
-impl<F: One> From<Point3<F>> for Vec4<F> {
+impl<F: FullFloat> From<Point3<F>> for Vec4<F> {
     fn from(v: Point3<F>) -> Vec4<F> {
         Vec4::new(v.0.x, v.0.y, v.0.z, F::one())
     }
 }
-impl<F> From<Vec2<F>> for Point2<F> {
+impl<F: FullFloat> From<Vec2<F>> for Point2<F> {
     fn from(v: Vec2<F>) -> Point2<F> {
         Point2(v)
     }
 }
-impl<F> From<Vec3<F>> for Point3<F> {
+impl<F: FullFloat> From<Vec3<F>> for Point3<F> {
     fn from(v: Vec3<F>) -> Point3<F> {
         Point3(v)
     }
 }
-impl<F> From<Vec4<F>> for Point3<F> {
+impl<F: FullFloat> From<Vec4<F>> for Point3<F> {
     fn from(v: Vec4<F>) -> Point3<F> {
         Point3(From::from(v))
     }
 }
 
-impl Point3<f32> {
+// ----------------------------------------------------------------------------
+
+impl<F: FullFloat> Point3<F> {
     #[allow(dead_code)]
     #[inline]
-    fn from_vec4(v: Vec4<f32>) -> Option<Point3<f32>> {
-        if v.w == 0.0 { return None; }
-        Some(Point3(Vec3::new(v.x/v.w, v.y/v.w, v.z/v.w)))
-    }
-}
-impl Point3<f64> {
-    #[allow(dead_code)]
-    #[inline]
-    fn from_vec4(v: Vec4<f64>) -> Option<Point3<f64>> {
-        if v.w == 0.0 { return None; }
+    fn from_vec4(v: Vec4<F>) -> Option<Point3<F>> {
+        if v.w == F::zero() { return None; }
         Some(Point3(Vec3::new(v.x/v.w, v.y/v.w, v.z/v.w)))
     }
 }
 
-impl<F: Add<Output=F>> Add<Vec2<F>> for Point2<F> {
+// ----------------------------------------------------------------------------
+
+impl<F: FullFloat> Add<Vec2<F>> for Point2<F> {
     type Output = Point2<F>;
 
     #[inline]
@@ -106,7 +105,7 @@ impl<F: Add<Output=F>> Add<Vec2<F>> for Point2<F> {
         Point2(self.0 + other)
     }
 }
-impl<F: Add<Output=F>> Add<Vec3<F>> for Point3<F> {
+impl<F: FullFloat> Add<Vec3<F>> for Point3<F> {
     type Output = Point3<F>;
 
     #[inline]
@@ -116,7 +115,7 @@ impl<F: Add<Output=F>> Add<Vec3<F>> for Point3<F> {
 }
 
 // point - vector = point
-impl<F: Sub<Output=F>> Sub<Vec2<F>> for Point2<F> {
+impl<F: FullFloat> Sub<Vec2<F>> for Point2<F> {
     type Output = Point2<F>;
 
     #[inline]
@@ -124,7 +123,7 @@ impl<F: Sub<Output=F>> Sub<Vec2<F>> for Point2<F> {
         Point2(self.0 - other)
     }
 }
-impl<F: Sub<Output=F>> Sub<Vec3<F>> for Point3<F> {
+impl<F: FullFloat> Sub<Vec3<F>> for Point3<F> {
     type Output = Point3<F>;
 
     #[inline]
@@ -134,7 +133,7 @@ impl<F: Sub<Output=F>> Sub<Vec3<F>> for Point3<F> {
 }
 
 // point - point = vector
-impl<F: Sub<Output=F>> Sub<Point2<F>> for Point2<F> {
+impl<F: FullFloat> Sub<Point2<F>> for Point2<F> {
     type Output = Vec2<F>;
 
     #[inline]
@@ -142,7 +141,7 @@ impl<F: Sub<Output=F>> Sub<Point2<F>> for Point2<F> {
         self.0 - other.0
     }
 }
-impl<F: Sub<Output=F>> Sub<Point3<F>> for Point3<F> {
+impl<F: FullFloat> Sub<Point3<F>> for Point3<F> {
     type Output = Vec3<F>;
 
     #[inline]
@@ -150,6 +149,9 @@ impl<F: Sub<Output=F>> Sub<Point3<F>> for Point3<F> {
         self.0 - other.0
     }
 }
+
+// ----------------------------------------------------------------------------
+// casting between float types
 
 impl From<Point2<f64>> for Point2<f32> {
     fn from(p: Point2<f64>) -> Point2<f32> {
@@ -175,7 +177,10 @@ impl From<Point3<f32>> for Point3<f64> {
     }
 }
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Point2<F> {
+// ----------------------------------------------------------------------------
+// ApproxEq
+
+impl<F: FullFloat> ApproxEqUlps for Point2<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
@@ -183,7 +188,7 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Point2<F> {
     }
 }
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Point3<F> {
+impl<F: FullFloat> ApproxEqUlps for Point3<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {

@@ -1,9 +1,9 @@
 
-use std::ops::{Add, Sub, Mul, AddAssign, SubAssign, MulAssign, DivAssign, Neg};
-use num_traits::{Zero, One, Float};
+use std::ops::{Add, Sub, Mul, AddAssign, SubAssign, MulAssign};
+use num_traits::NumCast;
 use std::default::Default;
 use float_cmp::{Ulps, ApproxEqUlps};
-use {Vec3, Mat3, Angle, Direction3};
+use {FullFloat, Vec3, Mat3, Angle, Direction3};
 
 // Quaternion (general)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -21,7 +21,7 @@ pub struct NQuat<F> {
     w: F
 }
 
-impl<F> Quat<F> {
+impl<F: FullFloat> Quat<F> {
     pub fn new(v: Vec3<F>, w: F) -> Quat<F> {
         Quat {
             v: v,
@@ -30,7 +30,7 @@ impl<F> Quat<F> {
     }
 }
 
-impl<F> NQuat<F> {
+impl<F: FullFloat> NQuat<F> {
     pub fn new_isnormal(v: Vec3<F>, w: F) -> NQuat<F> {
         NQuat {
             v: v,
@@ -39,7 +39,7 @@ impl<F> NQuat<F> {
     }
 }
 
-impl<F: Zero + One> Quat<F> {
+impl<F: FullFloat> Quat<F> {
     pub fn identity() -> Quat<F> {
         Quat {
             v: Vec3::new(F::zero(), F::zero(), F::zero()),
@@ -47,7 +47,7 @@ impl<F: Zero + One> Quat<F> {
         }
     }
 }
-impl<F: Zero + One> NQuat<F> {
+impl<F: FullFloat> NQuat<F> {
     pub fn identity() -> NQuat<F> {
         NQuat {
             v: Vec3::new(F::zero(), F::zero(), F::zero()),
@@ -56,16 +56,20 @@ impl<F: Zero + One> NQuat<F> {
     }
 }
 
-impl<F: Zero + One> Default for Quat<F> {
+impl<F: FullFloat> Default for Quat<F> {
     fn default() -> Quat<F> {
         Quat::identity()
     }
 }
-impl<F: Zero + One> Default for NQuat<F> {
+
+impl<F: FullFloat> Default for NQuat<F> {
     fn default() -> NQuat<F> {
         NQuat::identity()
     }
 }
+
+// ----------------------------------------------------------------------------
+// casting between float types
 
 impl From<Quat<f32>> for Quat<f64> {
     fn from(q: Quat<f32>) -> Quat<f64> {
@@ -103,9 +107,10 @@ impl From<NQuat<f64>> for NQuat<f32> {
     }
 }
 
+// ----------------------------------------------------------------------------
+// Casting to/from normal form
 
-impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F> + Float>
-    From<Quat<F>> for NQuat<F>
+impl<F: FullFloat> From<Quat<F>> for NQuat<F>
 {
     fn from(q: Quat<F>) -> NQuat<F> {
         let mag = q.magnitude();
@@ -116,16 +121,19 @@ impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F> + F
     }
 }
 
-impl<F> From<NQuat<F>> for Quat<F> {
+impl<F: FullFloat> From<NQuat<F>> for Quat<F> {
     fn from(nq: NQuat<F>) -> Quat<F> {
         Quat { v: nq.v, w: nq.w }
     }
 }
 
-impl<F: Zero + One + Float + Mul<F,Output=F>> NQuat<F> {
+// ----------------------------------------------------------------------------
+// Axis/Angle
+
+impl<F: FullFloat> NQuat<F> {
     pub fn from_axis_angle(axis: &Direction3<F>, angle: &Angle<F>) -> NQuat<F>
     {
-        let two = F::one() + F::one();
+        let two: F = NumCast::from(2.0_f32).unwrap();
         let (s,c) = (angle.as_radians() / two).sin_cos();
         let q = NQuat {
             v: Vec3::new(axis.x * s, axis.y * s, axis.z * s),
@@ -135,34 +143,37 @@ impl<F: Zero + One + Float + Mul<F,Output=F>> NQuat<F> {
     }
 }
 
-impl<F: Zero + One + Float + Mul<F,Output=F> + DivAssign> NQuat<F> {
+impl<F: FullFloat> NQuat<F> {
     pub fn as_axis_angle(&self) -> (Direction3<F>, Angle<F>)
     {
-        let two = F::one() + F::one();
+        let two: F = NumCast::from(2.0_f32).unwrap();
         let angle = self.w.acos() * two;
         let axis = self.v;
         (From::from(axis), Angle::from_radians(angle))
     }
 }
 
-impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F>>
-    Quat<F>
+// ----------------------------------------------------------------------------
+// Magnitude
+
+impl<F: FullFloat> Quat<F>
 {
     pub fn squared_magnitude(&self) -> F {
         self.w * self.w + self.v.squared_magnitude()
     }
 }
 
-impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F> + Neg<Output=F> + Float>
-    Quat<F>
+impl<F: FullFloat> Quat<F>
 {
     pub fn magnitude(&self) -> F {
         self.squared_magnitude().sqrt()
     }
 }
 
-impl<F: Add<Output=F>>
-    Add for Quat<F>
+// ----------------------------------------------------------------------------
+// Add/Sub
+
+impl<F: FullFloat> Add for Quat<F>
 {
     type Output = Quat<F>;
 
@@ -174,8 +185,7 @@ impl<F: Add<Output=F>>
     }
 }
 
-impl<F: Copy + AddAssign<F>>
-    AddAssign for Quat<F>
+impl<F: FullFloat> AddAssign for Quat<F>
 {
     fn add_assign(&mut self, rhs: Quat<F>) {
         self.v += rhs.v;
@@ -183,8 +193,7 @@ impl<F: Copy + AddAssign<F>>
     }
 }
 
-impl<F: Sub<Output=F>>
-    Sub for Quat<F>
+impl<F: FullFloat> Sub for Quat<F>
 {
     type Output = Quat<F>;
 
@@ -196,8 +205,7 @@ impl<F: Sub<Output=F>>
     }
 }
 
-impl<F: Sub<Output=F> + SubAssign<F> + Copy>
-    SubAssign for Quat<F>
+impl<F: FullFloat> SubAssign for Quat<F>
 {
     fn sub_assign(&mut self, rhs: Quat<F>) {
         self.v -= rhs.v;
@@ -205,8 +213,10 @@ impl<F: Sub<Output=F> + SubAssign<F> + Copy>
     }
 }
 
-impl<F: Copy + Mul<F,Output=F>>
-    Mul<F> for Quat<F>
+// ----------------------------------------------------------------------------
+// Scalar Mul/Div, Hamiltonian Product, Dot product
+
+impl<F: FullFloat> Mul<F> for Quat<F>
 {
     type Output = Quat<F>;
 
@@ -218,8 +228,7 @@ impl<F: Copy + Mul<F,Output=F>>
     }
 }
 
-impl<F: Copy + Add<F,Output=F> + Mul<F,Output=F>>
-    Quat<F>
+impl<F: FullFloat> Quat<F>
 {
     pub fn dot(&self, other: Quat<F>) -> F
     {
@@ -227,8 +236,7 @@ impl<F: Copy + Add<F,Output=F> + Mul<F,Output=F>>
     }
 }
 
-impl<F: Copy + Add<F,Output=F> + Mul<F,Output=F>>
-    NQuat<F>
+impl<F: FullFloat> NQuat<F>
 {
     pub fn dot(&self, other: Quat<F>) -> F
     {
@@ -237,8 +245,7 @@ impl<F: Copy + Add<F,Output=F> + Mul<F,Output=F>>
 }
 
 // Hamiltonian product
-impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
-    Mul for Quat<F>
+impl<F: FullFloat> Mul for Quat<F>
 {
     type Output = Quat<F>;
 
@@ -250,8 +257,7 @@ impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
     }
 }
 
-impl<F: Copy + Float + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
-    Mul for NQuat<F>
+impl<F: FullFloat> Mul for NQuat<F>
 {
     type Output = NQuat<F>;
 
@@ -262,8 +268,7 @@ impl<F: Copy + Float + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
     }
 }
 
-impl<F: Copy + Mul<F,Output=F> + MulAssign<F>>
-    MulAssign<F> for Quat<F>
+impl<F: FullFloat> MulAssign<F> for Quat<F>
 {
     fn mul_assign(&mut self, rhs: F) {
         self.v *= rhs;
@@ -271,8 +276,7 @@ impl<F: Copy + Mul<F,Output=F> + MulAssign<F>>
     }
 }
 
-impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
-    MulAssign for Quat<F>
+impl<F: FullFloat> MulAssign for Quat<F>
 {
     fn mul_assign(&mut self, rhs: Quat<F>) {
         self.v = self.v.cross(rhs.v)  +  rhs.v * self.w  +  self.v * rhs.w;
@@ -280,9 +284,10 @@ impl<F: Copy + Add<Output=F> + Sub<Output=F> + Mul<Output=F>>
     }
 }
 
+// ----------------------------------------------------------------------------
+// Conjugate
 
-impl<F: Copy + Neg<Output=F>>
-    Quat<F>
+impl<F: FullFloat> Quat<F>
 {
     pub fn conjugate(&self) -> Quat<F> {
         Quat {
@@ -292,8 +297,7 @@ impl<F: Copy + Neg<Output=F>>
     }
 }
 
-impl<F: Copy + Neg<Output=F>>
-    NQuat<F>
+impl<F: FullFloat> NQuat<F>
 {
     pub fn conjugate(&self) -> NQuat<F> {
         NQuat {
@@ -303,8 +307,10 @@ impl<F: Copy + Neg<Output=F>>
     }
 }
 
-impl<F: Copy + Add<Output=F> + Mul<Output=F> + Sub<Output=F> + Neg<Output=F>>
-    NQuat<F>
+// ----------------------------------------------------------------------------
+// Rotate a vector
+
+impl<F: FullFloat> NQuat<F>
 {
     pub fn rotate(&self, v: Vec3<F>) -> Vec3<F> {
         let dot = v.dot(self.v);
@@ -315,8 +321,12 @@ impl<F: Copy + Add<Output=F> + Mul<Output=F> + Sub<Output=F> + Neg<Output=F>>
     }
 }
 
-impl From<NQuat<f32>> for Mat3<f32> {
-    fn from(q: NQuat<f32>) -> Mat3<f32> {
+// ----------------------------------------------------------------------------
+// To/From Matrix
+
+impl<F: FullFloat> From<NQuat<F>> for Mat3<F> {
+    fn from(q: NQuat<F>) -> Mat3<F> {
+        let two: F = NumCast::from(2.0_f32).unwrap();
         let x2 = q.v.x * q.v.x;
         let y2 = q.v.y * q.v.y;
         let z2 = q.v.z * q.v.z;
@@ -328,64 +338,49 @@ impl From<NQuat<f32>> for Mat3<f32> {
         let wz = q.w * q.v.z;
 
         Mat3::new(
-            1.0 - 2.0 * (y2 + z2),        2.0 * (xy - wz),       2.0 * (xz + wy),
-            2.0       * (xy + wz),  1.0 - 2.0 * (x2 + z2),       2.0 * (yz - wx),
-            2.0       * (xz - wy),        2.0 * (yz + wx), 1.0 - 2.0 * (x2 + y2)
+            F::one() - two * (y2 + z2),             two * (xy - wz),            two * (xz + wy),
+            two            * (xy + wz),  F::one() - two * (x2 + z2),            two * (yz - wx),
+            two            * (xz - wy),             two * (yz + wx), F::one() - two * (x2 + y2)
         )
     }
 }
 
-impl From<NQuat<f64>> for Mat3<f64> {
-    fn from(q: NQuat<f64>) -> Mat3<f64> {
-        let x2 = q.v.x * q.v.x;
-        let y2 = q.v.y * q.v.y;
-        let z2 = q.v.z * q.v.z;
-        let xy = q.v.x * q.v.y;
-        let xz = q.v.x * q.v.z;
-        let yz = q.v.y * q.v.z;
-        let wx = q.w * q.v.x;
-        let wy = q.w * q.v.y;
-        let wz = q.w * q.v.z;
+// GINA
+impl<F: FullFloat> From<Mat3<F>> for NQuat<F> {
+    fn from(m: Mat3<F>) -> NQuat<F> {
+        let one: F = F::one();
+        let half: F = NumCast::from(0.5_f32).unwrap();
+        let quarter: F = NumCast::from(0.25_f32).unwrap();
 
-        Mat3::new(
-            1.0 - 2.0 * (y2 + z2),        2.0 * (xy - wz),       2.0 * (xz + wy),
-            2.0       * (xy + wz),  1.0 - 2.0 * (x2 + z2),       2.0 * (yz - wx),
-            2.0       * (xz - wy),        2.0 * (yz + wx), 1.0 - 2.0 * (x2 + y2)
-        )
-    }
-}
-
-impl From<Mat3<f32>> for NQuat<f32> {
-    fn from(m: Mat3<f32>) -> NQuat<f32> {
         let sum = m.x.x + m.y.y + m.z.z;
         let x;
         let y;
         let z;
         let w;
-        if sum>0.0 {
-            w = (sum + 1.0).sqrt() * 0.5;
-            let f = 0.25 / w;
+        if sum>F::zero() {
+            w = (sum + one).sqrt() * half;
+            let f = quarter / w;
             x = (m.z.y - m.y.z) * f;
             y = (m.x.z - m.z.x) * f;
             z = (m.y.x - m.x.y) * f;
         }
         else if (m.x.x > m.y.y) && (m.x.x > m.z.z) {
-            x = (m.x.x - m.y.y - m.z.z + 1.0).sqrt() * 0.5;
-            let f = 0.25 / x;
+            x = (m.x.x - m.y.y - m.z.z + one).sqrt() * half;
+            let f = quarter / x;
             y = (m.y.x + m.x.y) * f;
             z = (m.x.z + m.z.x) * f;
             w = (m.z.y - m.y.z) * f;
         }
         else if m.y.y > m.z.z {
-            y = (m.y.y - m.x.x - m.z.z + 1.0).sqrt() * 0.5;
-            let f = 0.25 / y;
+            y = (m.y.y - m.x.x - m.z.z + one).sqrt() * half;
+            let f = quarter / y;
             x = (m.y.x + m.x.y) * f;
             z = (m.z.y + m.y.z) * f;
             w = (m.x.z - m.z.x) * f;
         }
         else {
-            z = (m.z.z - m.x.x - m.y.y + 1.0).sqrt() * 0.5;
-            let f = 0.25 / z;
+            z = (m.z.z - m.x.x - m.y.y + one).sqrt() * half;
+            let f = quarter / z;
             x = (m.x.z + m.z.x) * f;
             y = (m.z.y + m.y.z) * f;
             w = (m.y.x - m.x.y) * f;
@@ -395,48 +390,10 @@ impl From<Mat3<f32>> for NQuat<f32> {
     }
 }
 
-impl From<Mat3<f64>> for NQuat<f64> {
-    fn from(m: Mat3<f64>) -> NQuat<f64> {
-        let sum = m.x.x + m.y.y + m.z.z;
-        let x;
-        let y;
-        let z;
-        let w;
-        if sum>0.0 {
-            w = (sum + 1.0).sqrt() * 0.5;
-            let f = 0.25 / w;
-            x = (m.z.y - m.y.z) * f;
-            y = (m.x.z - m.z.x) * f;
-            z = (m.y.x - m.x.y) * f;
-        }
-        else if m.x.x > m.y.y && m.x.x > m.z.z {
-            x = (m.x.x - m.y.y - m.z.z + 1.0).sqrt() * 0.5;
-            let f = 0.25 / x;
-            y = (m.y.x + m.x.y) * f;
-            z = (m.x.z + m.z.x) * f;
-            w = (m.z.y - m.y.z) * f;
+// ----------------------------------------------------------------------------
+// ApproxEq
 
-        }
-        else if m.y.y > m.z.z {
-            y = (m.y.y - m.x.x - m.z.z + 1.0).sqrt() * 0.5;
-            let f = 0.25 / y;
-            x = (m.y.x + m.x.y) * f;
-            z = (m.z.y + m.y.z) * f;
-            w = (m.x.z - m.z.x) * f;
-        }
-        else {
-            z = (m.z.z - m.x.x - m.y.y + 1.0).sqrt() * 0.5;
-            let f = 0.25 / z;
-            x = (m.x.z + m.z.x) * f;
-            y = (m.z.y + m.y.z) * f;
-            w = (m.y.x - m.x.y) * f;
-        }
-
-        NQuat { v: Vec3 { x: x, y: y, z: z }, w: w }
-    }
-}
-
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Quat<F> {
+impl<F: FullFloat> ApproxEqUlps for Quat<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
@@ -445,7 +402,7 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for Quat<F> {
     }
 }
 
-impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for NQuat<F> {
+impl<F: FullFloat> ApproxEqUlps for NQuat<F> {
     type Flt = F;
 
     fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
@@ -453,6 +410,8 @@ impl<F: Ulps + ApproxEqUlps<Flt=F>> ApproxEqUlps for NQuat<F> {
             self.w.approx_eq_ulps(&other.w, ulps)
     }
 }
+
+// ----------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
