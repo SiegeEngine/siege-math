@@ -1,5 +1,5 @@
 
-use std::ops::{Deref, Sub, Add};
+use std::ops::{Deref, Sub, Add, Neg};
 use float_cmp::{Ulps, ApproxEqUlps};
 use super::{Vec2, Vec3, Vec4};
 use FullFloat;
@@ -147,6 +147,18 @@ impl<F: FullFloat> Sub<Point3<F>> for Point3<F> {
     #[inline]
     fn sub(self, other: Point3<F>) -> Vec3<F> {
         self.0 - other.0
+    }
+}
+
+// ----------------------------------------------------------------------------
+// Neg
+
+impl<F: FullFloat> Neg for Point3<F> {
+    type Output = Point3<F>;
+
+    #[inline]
+    fn neg(self) -> Point3<F> {
+        Point3(-self.0)
     }
 }
 
