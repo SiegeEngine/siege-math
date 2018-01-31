@@ -11,6 +11,7 @@ pub use self::direction::{Direction2, Direction3,
 use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
                Add, AddAssign, Sub, SubAssign};
 use std::default::Default;
+use num_traits::NumCast;
 use float_cmp::{Ulps, ApproxEqUlps};
 use FullFloat;
 
@@ -229,7 +230,7 @@ macro_rules! impl_vector {
             pub fn is_normal(&self) -> bool {
                 self.magnitude().approx_eq_ulps(
                     &F::one(),
-                    <<F as ApproxEqUlps>::Flt as Ulps>::default_ulps()
+                    NumCast::from(10_u32).unwrap()
                 )
             }
         }

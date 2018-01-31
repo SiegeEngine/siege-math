@@ -39,7 +39,7 @@ impl<F: FullFloat> NQuat<F> {
 
         assert!((w*w + v.squared_magnitude()).sqrt().approx_eq_ulps(
             &F::one(),
-            <<F as ApproxEqUlps>::Flt as Ulps>::default_ulps()
+            NumCast::from(10_u32).unwrap()
         ));
 
         q
@@ -165,11 +165,11 @@ impl<F: FullFloat> NQuat<F> {
     pub fn from_directions(start: Direction3<F>, end: Direction3<F>) -> Option<NQuat<F>>
     {
         // If they are the same, we can return the identity quaternion
-        if start.approx_eq_ulps(&end, <<F as ApproxEqUlps>::Flt as Ulps>::default_ulps()) {
+        if start.approx_eq_ulps(&end, NumCast::from(10_u32).unwrap()) {
             return Some(NQuat::identity())
         }
         // If they are opposite, there is no quaternion that will work.
-        if start.approx_eq_ulps(&-end, <<F as ApproxEqUlps>::Flt as Ulps>::default_ulps()) {
+        if start.approx_eq_ulps(&-end, NumCast::from(10_u32).unwrap()) {
             return None
         }
 
@@ -209,7 +209,7 @@ impl<F: FullFloat> Quat<F> {
     pub fn is_normal(&self) -> bool {
         self.magnitude().approx_eq_ulps(
             &F::one(),
-            <<F as ApproxEqUlps>::Flt as Ulps>::default_ulps()
+            NumCast::from(10_u32).unwrap()
         )
     }
 }
