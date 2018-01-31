@@ -56,10 +56,9 @@ impl<F: FullFloat> Quat<F> {
 }
 impl<F: FullFloat> NQuat<F> {
     pub fn identity() -> NQuat<F> {
-        NQuat {
-            v: Vec3::new(F::zero(), F::zero(), F::zero()),
-            w: F::one()
-        }
+        NQuat::new_isnormal(
+            Vec3::new(F::zero(), F::zero(), F::zero()),
+            F::one())
     }
 }
 
@@ -98,19 +97,17 @@ impl From<Quat<f64>> for Quat<f32> {
 
 impl From<NQuat<f32>> for NQuat<f64> {
     fn from(q: NQuat<f32>) -> NQuat<f64> {
-        NQuat {
-            v: From::from(q.v),
-            w: q.w as f64
-        }
+        NQuat::new_isnormal(
+            From::from(q.v),
+            q.w as f64)
     }
 }
 
 impl From<NQuat<f64>> for NQuat<f32> {
     fn from(q: NQuat<f64>) -> NQuat<f32> {
-        NQuat {
-            v: From::from(q.v),
-            w: q.w as f32
-        }
+        NQuat::new_isnormal(
+            From::from(q.v),
+            q.w as f32)
     }
 }
 
@@ -121,10 +118,9 @@ impl<F: FullFloat> From<Quat<F>> for NQuat<F>
 {
     fn from(q: Quat<F>) -> NQuat<F> {
         let mag = q.magnitude();
-        NQuat {
-            v: q.v / mag,
-            w: q.w / mag
-        }
+        NQuat::new_isnormal(
+            q.v / mag,
+            q.w / mag)
     }
 }
 
@@ -337,10 +333,9 @@ impl<F: FullFloat> Quat<F>
 impl<F: FullFloat> NQuat<F>
 {
     pub fn conjugate(&self) -> NQuat<F> {
-        NQuat {
-            v: -self.v,
-            w: self.w
-        }
+        NQuat::new_isnormal(
+            -self.v,
+            self.w)
     }
 }
 
@@ -435,7 +430,7 @@ impl<F: FullFloat> From<Mat3<F>> for NQuat<F> {
             w = (m.y.x - m.x.y) * f;
         }
 
-        NQuat { v: Vec3 { x: x, y: y, z: z }, w: w }
+        NQuat::new_isnormal(Vec3 { x: x, y: y, z: z }, w)
     }
 }
 
