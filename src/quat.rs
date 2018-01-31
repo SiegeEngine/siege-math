@@ -160,9 +160,9 @@ impl<F: FullFloat> NQuat<F> {
 // ----------------------------------------------------------------------------
 // Compute the quat that rotates from start to end
 
-impl<F: FullFloat> Quat<F> {
+impl<F: FullFloat> NQuat<F> {
     // This returns None if start/end are the same or opposite)
-    pub fn from_directions(start: Direction3<F>, end: Direction3<F>) -> Option<Quat<F>>
+    pub fn from_directions(start: Direction3<F>, end: Direction3<F>) -> Option<NQuat<F>>
     {
         let two: F = NumCast::from(2.0_f32).unwrap();
         let e = start.dot(end);
@@ -171,10 +171,9 @@ impl<F: FullFloat> Quat<F> {
         }
         let term = (two * (F::one() + e)).sqrt();
         let v: Vec3<F> = start.cross(end);
-        Some(Quat {
-            v: v / term,
-            w: term / two
-        })
+        Some(NQuat::new_isnormal(
+            v / term,
+            term / two))
     }
 }
 
