@@ -112,8 +112,8 @@ impl<F: FullFloat> Direction3<F> {
 
 impl<F: FullFloat> Direction3<F> {
     #[inline]
-    pub fn cross(&self, rhs: Direction3<F>) -> Direction3<F> {
-        Direction3(self.0.cross(rhs.0))
+    pub fn cross(&self, rhs: Direction3<F>) -> Vec3<F> {
+        self.0.cross(rhs.0)
     }
 }
 

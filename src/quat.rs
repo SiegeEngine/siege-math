@@ -159,13 +159,13 @@ impl<F: FullFloat> NQuat<F> {
 impl<F: FullFloat> NQuat<F> {
     pub fn from_directions(start: Direction3<F>, end: Direction3<F>) -> NQuat<F>
     {
-        // From Real-Time Rendering, 3rd ed, p79
         let two: F = NumCast::from(2.0_f32).unwrap();
-        let c = F::one() / (two * (F::one() + F::E())).sqrt();
-        let v: Vec3<F> = From::from(start.cross(end));
+        let e = start.dot(end);
+        let term = (two * (F::one() + e)).sqrt();
+        let v: Vec3<F> = start.cross(end);
         NQuat {
-            v: v * c,
-            w: two / c
+            v: v / term,
+            w: term / two
         }
     }
 }
