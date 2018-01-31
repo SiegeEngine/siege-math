@@ -39,7 +39,7 @@ impl<F: FullFloat> NQuat<F> {
 
         assert!((w*w + v.squared_magnitude()).sqrt().approx_eq_ulps(
             &F::one(),
-            NumCast::from(10_u32).unwrap()
+            NumCast::from(20_u32).unwrap()
         ));
 
         q
@@ -182,9 +182,12 @@ impl<F: FullFloat> NQuat<F> {
         }
         let term = (two * (F::one() + e)).sqrt();
         let v: Vec3<F> = start.cross(end);
-        Some(NQuat::new_isnormal(
-            v / term,
-            term / two))
+        let q = Quat {
+            v: v / term,
+            w: term / two
+        };
+        // q is near-normal, but we require better (at some cost!)
+        Some(From::from(q))
     }
 }
 
