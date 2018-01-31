@@ -429,7 +429,14 @@ impl<F: FullFloat> From<Mat3<F>> for NQuat<F> {
             w = (m.y.x - m.x.y) * f;
         }
 
-        NQuat::new_isnormal(Vec3 { x: x, y: y, z: z }, w)
+        let q = Quat {
+            v: Vec3 { x: x, y: y, z: z },
+            w: w
+        };
+
+        // The above is theoretically normal, but instability will probably
+        // put it far off in Ulps terms. So we normalize
+        From::from(q)
     }
 }
 
@@ -492,16 +499,17 @@ mod tests {
         use float_cmp::ApproxEqUlps;
 
         let v = Vec3::<f32>::new(1.0, 0.2, -0.3);
-        let q: NQuat<f32> = From::from(
-            Quat::<f32>::new(v, 5.0));
+        let q = Quat::<f32>::new(v, 5.0);
+        let nq: NQuat<f32> = From::from(q);
+        let q: Quat<f32> = From::from(nq);
 
-        let m: Mat3<f32> = From::from(q);
+        let m: Mat3<f32> = From::from(nq);
 
         // Conversion through a matrix could return the
         // conjugate (which represents the same rotation)
         // so we have to check for either
-        let q2: NQuat<f32> = From::from(m);
-        let q2c: NQuat<f32> = q2.conjugate();
+        let q2: Quat<f32> = From::from(m);
+        let q2c: Quat<f32> = q2.conjugate();
 
         assert!(q2.approx_eq_ulps(&q, 2) ||
                 q2c.approx_eq_ulps(&q, 2));
