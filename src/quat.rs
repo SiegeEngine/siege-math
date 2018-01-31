@@ -164,9 +164,20 @@ impl<F: FullFloat> NQuat<F> {
     // This returns None if start/end are the same or opposite)
     pub fn from_directions(start: Direction3<F>, end: Direction3<F>) -> Option<NQuat<F>>
     {
+        // If they are the same, we can return the identity quaternion
+        if start.approx_eq_ulps(&end, <<F as ApproxEqUlps>::Flt as Ulps>::default_ulps()) {
+            return Some(NQuat::identity())
+        }
+        // If they are opposite, there is no quaternion that will work.
+        if start.approx_eq_ulps(&-end, <<F as ApproxEqUlps>::Flt as Ulps>::default_ulps()) {
+            return None
+        }
+
         let two: F = NumCast::from(2.0_f32).unwrap();
         let e = start.dot(end);
         if e==-F::one() {
+            // The input vectors are the same or opposite (although we should
+            // have detected this up above)
             return None;
         }
         let term = (two * (F::one() + e)).sqrt();
