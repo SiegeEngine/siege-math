@@ -32,10 +32,17 @@ impl<F: FullFloat> Quat<F> {
 
 impl<F: FullFloat> NQuat<F> {
     pub fn new_isnormal(v: Vec3<F>, w: F) -> NQuat<F> {
-        NQuat {
+        let q = NQuat {
             v: v,
             w: w,
-        }
+        };
+
+        assert!((w*w + v.squared_magnitude()).sqrt().approx_eq_ulps(
+            &F::one(),
+            <<F as ApproxEqUlps>::Flt as Ulps>::default_ulps()
+        ));
+
+        q
     }
 }
 
@@ -130,8 +137,9 @@ impl<F: FullFloat> From<NQuat<F>> for Quat<F> {
 // ----------------------------------------------------------------------------
 // Axis/Angle
 
-impl<F: FullFloat> Quat<F> {
-    pub fn from_axis_angle(axis: &Direction3<F>, angle: &Angle<F>) -> Quat<F>
+impl<F: FullFloat> NQuat<F> {
+    // This always yields normal quats (tested)
+    pub fn from_axis_angle(axis: &Direction3<F>, angle: &Angle<F>) -> NQuat<F>
     {
         let two: F = NumCast::from(2.0_f32).unwrap();
         let (s,c) = (angle.as_radians() / two).sin_cos();
@@ -143,7 +151,7 @@ impl<F: FullFloat> Quat<F> {
     }
 }
 
-impl<F: FullFloat> Quat<F> {
+impl<F: FullFloat> NQuat<F> {
     pub fn as_axis_angle(&self) -> (Direction3<F>, Angle<F>)
     {
         let two: F = NumCast::from(2.0_f32).unwrap();
@@ -188,6 +196,15 @@ impl<F: FullFloat> Quat<F>
 {
     pub fn magnitude(&self) -> F {
         self.squared_magnitude().sqrt()
+    }
+}
+
+impl<F: FullFloat> Quat<F> {
+    pub fn is_normal(&self) -> bool {
+        self.magnitude().approx_eq_ulps(
+            &F::one(),
+            <<F as ApproxEqUlps>::Flt as Ulps>::default_ulps()
+        )
     }
 }
 
@@ -502,7 +519,7 @@ mod tests {
 
         let axis: Direction3<f32> = From::from(Vec3::<f32>::new(1.0, 1.0, 1.0));
         let angle = Angle::<f32>::from_degrees(90.0);
-        let q = Quat::<f32>::from_axis_angle(&axis, &angle);
+        let q = NQuat::<f32>::from_axis_angle(&axis, &angle);
         let (axis2, angle2) = q.as_axis_angle();
         println!("axis {:?} angle {:?} axis {:?} angle {:?}",
                  axis, angle, axis2, angle2);
@@ -516,15 +533,30 @@ mod tests {
 
         let axis: Direction3<f32> = From::from(Vec3::<f32>::new(1.0, 0.0, 0.0));
         let angle = Angle::<f32>::from_degrees(90.0);
-        let q = Quat::<f32>::from_axis_angle(&axis, &angle);
-        let nq: NQuat<f32> = From::from(q);
+        let q = NQuat::<f32>::from_axis_angle(&axis, &angle);
 
         let object = Vec3::<f32>::new(10.0, 5.0, 3.0);
 
-        let object2 = nq.rotate(object);
+        let object2 = q.rotate(object);
 
         assert!(object2.x.approx_eq_ulps(&10.0, 2));
         assert!(object2.y.approx_eq_ulps(&-3.0, 2));
         assert!(object2.z.approx_eq_ulps(&5.0, 2));
     }
+
+    /*
+    #[test]
+    fn test_normal_or_not() {
+        // This was for me to determine some things.
+        let axis: Direction3<f32> = From::from(Vec3::<f32>::new(1.0, 5.0, 6.0003));
+        let angle = Angle::<f32>::from_degrees(93.4);
+        let q = NQuat::<f32>::from_axis_angle(&axis, &angle);
+
+        if q.is_normal() {
+            println!("from_axis_angle yields normal quats");
+        } else {
+            println!("from_axis_angle yields general quats");
+        }
+    }
+    */
 }

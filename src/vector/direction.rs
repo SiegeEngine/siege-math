@@ -38,14 +38,18 @@ pub const Z_AXIS_F64: Direction3<f64> = Direction3::<f64>(
 impl<F: FullFloat> Direction2<F> {
     #[inline]
     pub fn new_isnormal(x: F, y: F) -> Direction2<F> {
-        Direction2(Vec2::new(x,y))
+        let d = Direction2(Vec2::new(x,y));
+        assert!(d.0.is_normal());
+        d
     }
 }
 
 impl<F: FullFloat> Direction3<F> {
     #[inline]
     pub fn new_isnormal(x: F, y: F, z: F) -> Direction3<F> {
-        Direction3(Vec3::new(x,y,z))
+        let d = Direction3(Vec3::new(x,y,z));
+        assert!(d.0.is_normal());
+        d
     }
 }
 

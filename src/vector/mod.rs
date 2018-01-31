@@ -225,6 +225,15 @@ macro_rules! impl_vector {
             }
         }
 
+        impl<F: FullFloat> $VecN<F> {
+            pub fn is_normal(&self) -> bool {
+                self.magnitude().approx_eq_ulps(
+                    &F::one(),
+                    <<F as ApproxEqUlps>::Flt as Ulps>::default_ulps()
+                )
+            }
+        }
+
         impl<F: FullFloat> Mul<F> for $VecN<F> {
             type Output = $VecN<F>;
 
