@@ -130,12 +130,12 @@ impl<F: FullFloat> From<NQuat<F>> for Quat<F> {
 // ----------------------------------------------------------------------------
 // Axis/Angle
 
-impl<F: FullFloat> NQuat<F> {
-    pub fn from_axis_angle(axis: &Direction3<F>, angle: &Angle<F>) -> NQuat<F>
+impl<F: FullFloat> Quat<F> {
+    pub fn from_axis_angle(axis: &Direction3<F>, angle: &Angle<F>) -> Quat<F>
     {
         let two: F = NumCast::from(2.0_f32).unwrap();
         let (s,c) = (angle.as_radians() / two).sin_cos();
-        let q = NQuat {
+        let q = Quat {
             v: Vec3::new(axis.x * s, axis.y * s, axis.z * s),
             w: c
         };
@@ -143,7 +143,7 @@ impl<F: FullFloat> NQuat<F> {
     }
 }
 
-impl<F: FullFloat> NQuat<F> {
+impl<F: FullFloat> Quat<F> {
     pub fn as_axis_angle(&self) -> (Direction3<F>, Angle<F>)
     {
         let two: F = NumCast::from(2.0_f32).unwrap();
@@ -156,9 +156,9 @@ impl<F: FullFloat> NQuat<F> {
 // ----------------------------------------------------------------------------
 // Compute the quat that rotates from start to end
 
-impl<F: FullFloat> NQuat<F> {
+impl<F: FullFloat> Quat<F> {
     // This returns None if start/end are the same or opposite)
-    pub fn from_directions(start: Direction3<F>, end: Direction3<F>) -> Option<NQuat<F>>
+    pub fn from_directions(start: Direction3<F>, end: Direction3<F>) -> Option<Quat<F>>
     {
         let two: F = NumCast::from(2.0_f32).unwrap();
         let e = start.dot(end);
@@ -167,7 +167,7 @@ impl<F: FullFloat> NQuat<F> {
         }
         let term = (two * (F::one() + e)).sqrt();
         let v: Vec3<F> = start.cross(end);
-        Some(NQuat {
+        Some(Quat {
             v: v / term,
             w: term / two
         })
@@ -332,6 +332,9 @@ impl<F: FullFloat> NQuat<F>
 
 impl<F: FullFloat> NQuat<F>
 {
+    // In general, the sandwich product qvq* does not care if Q is normalized or not.
+    // However we presume it is normalized so we can take some shortcuts.
+    // See Eric Lengyel, Foundations of Game Engine Development: Vol.1 Mathematics, p89
     pub fn rotate(&self, v: Vec3<F>) -> Vec3<F> {
         let dot = v.dot(self.v);
 
@@ -499,7 +502,7 @@ mod tests {
 
         let axis: Direction3<f32> = From::from(Vec3::<f32>::new(1.0, 1.0, 1.0));
         let angle = Angle::<f32>::from_degrees(90.0);
-        let q = NQuat::<f32>::from_axis_angle(&axis, &angle);
+        let q = Quat::<f32>::from_axis_angle(&axis, &angle);
         let (axis2, angle2) = q.as_axis_angle();
         println!("axis {:?} angle {:?} axis {:?} angle {:?}",
                  axis, angle, axis2, angle2);
@@ -513,11 +516,12 @@ mod tests {
 
         let axis: Direction3<f32> = From::from(Vec3::<f32>::new(1.0, 0.0, 0.0));
         let angle = Angle::<f32>::from_degrees(90.0);
-        let q = NQuat::<f32>::from_axis_angle(&axis, &angle);
+        let q = Quat::<f32>::from_axis_angle(&axis, &angle);
+        let nq: NQuat<f32> = From::from(q);
 
         let object = Vec3::<f32>::new(10.0, 5.0, 3.0);
 
-        let object2 = q.rotate(object);
+        let object2 = nq.rotate(object);
 
         assert!(object2.x.approx_eq_ulps(&10.0, 2));
         assert!(object2.y.approx_eq_ulps(&-3.0, 2));
