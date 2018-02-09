@@ -5,7 +5,7 @@ use float_cmp::{Ulps, ApproxEqUlps};
 use FullFloat;
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[derive(Serialize, Deserialize)]
 pub struct Angle<F>(F);
 
