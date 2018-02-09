@@ -522,7 +522,8 @@ mod tests {
         // Conversion through a matrix could return the
         // conjugate (which represents the same rotation)
         // so we have to check for either
-        let q2: Quat<f32> = From::from(m);
+        let nq: NQuat<f32> = From::from(m);
+        let q2: Quat<f32> = From::from(nq);
         let q2c: Quat<f32> = q2.conjugate();
 
         assert!(q2.approx_eq_ulps(&q, 2) ||
