@@ -1,7 +1,7 @@
 
 use num_traits::NumCast;
 use std::ops::{Mul, Div, Add, Sub, Neg};
-use float_cmp::{Ulps, ApproxEqUlps};
+use float_cmp::{Ulps, ApproxEq};
 use FullFloat;
 
 #[repr(C)]
@@ -105,10 +105,12 @@ impl<F: FullFloat> Neg for Angle<F> {
     }
 }
 
-impl<F: FullFloat> ApproxEqUlps for Angle<F> {
+impl<F: FullFloat> ApproxEq for Angle<F> {
     type Flt = F;
 
-    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
-        self.0.approx_eq_ulps(&other.0, ulps)
+    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
+                 epsilon: <F as ApproxEq>::Flt) -> bool
+    {
+        self.0.approx_eq(&other.0, ulps, epsilon)
     }
 }

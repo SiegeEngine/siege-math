@@ -1,6 +1,6 @@
 
 use std::ops::{Deref, Sub, Add, Neg};
-use float_cmp::{Ulps, ApproxEqUlps};
+use float_cmp::{Ulps, ApproxEq};
 use super::{Vec2, Vec3, Vec4};
 use FullFloat;
 
@@ -192,18 +192,22 @@ impl From<Point3<f32>> for Point3<f64> {
 // ----------------------------------------------------------------------------
 // ApproxEq
 
-impl<F: FullFloat> ApproxEqUlps for Point2<F> {
+impl<F: FullFloat> ApproxEq for Point2<F> {
     type Flt = F;
 
-    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
-        self.0.approx_eq_ulps(&other.0, ulps)
+    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
+                 epsilon: <F as ApproxEq>::Flt) -> bool
+    {
+        self.0.approx_eq(&other.0, ulps, epsilon)
     }
 }
 
-impl<F: FullFloat> ApproxEqUlps for Point3<F> {
+impl<F: FullFloat> ApproxEq for Point3<F> {
     type Flt = F;
 
-    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
-        self.0.approx_eq_ulps(&other.0, ulps)
+    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
+                 epsilon: <F as ApproxEq>::Flt) -> bool
+    {
+        self.0.approx_eq(&other.0, ulps, epsilon)
     }
 }

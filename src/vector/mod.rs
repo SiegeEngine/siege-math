@@ -12,7 +12,7 @@ use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
                Add, AddAssign, Sub, SubAssign};
 use std::default::Default;
 use num_traits::NumCast;
-use float_cmp::{Ulps, ApproxEqUlps};
+use float_cmp::{Ulps, ApproxEq};
 use FullFloat;
 
 #[repr(C)]
@@ -228,9 +228,10 @@ macro_rules! impl_vector {
 
         impl<F: FullFloat> $VecN<F> {
             pub fn is_normal(&self) -> bool {
-                self.magnitude().approx_eq_ulps(
+                self.magnitude().approx_eq(
                     &F::one(),
-                    NumCast::from(10_u32).unwrap()
+                    NumCast::from(10_u32).unwrap(),
+                    <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon()
                 )
             }
         }
@@ -458,33 +459,39 @@ impl From<Vec4<f32>> for Vec4<f64> {
 // ----------------------------------------------------------------------------
 // Approx Eq
 
-impl<F: FullFloat> ApproxEqUlps for Vec2<F> {
+impl<F: FullFloat> ApproxEq for Vec2<F> {
     type Flt = F;
 
-    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
-        self.x.approx_eq_ulps(&other.x, ulps)
-            && self.y.approx_eq_ulps(&other.y, ulps)
+    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
+                 epsilon: <F as ApproxEq>::Flt) -> bool
+    {
+        self.x.approx_eq(&other.x, ulps, epsilon)
+            && self.y.approx_eq(&other.y, ulps, epsilon)
     }
 }
 
-impl<F: FullFloat> ApproxEqUlps for Vec3<F> {
+impl<F: FullFloat> ApproxEq for Vec3<F> {
     type Flt = F;
 
-    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
-        self.x.approx_eq_ulps(&other.x, ulps)
-            && self.y.approx_eq_ulps(&other.y, ulps)
-            && self.z.approx_eq_ulps(&other.z, ulps)
+    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
+                 epsilon: <F as ApproxEq>::Flt) -> bool
+    {
+        self.x.approx_eq(&other.x, ulps, epsilon)
+            && self.y.approx_eq(&other.y, ulps, epsilon)
+            && self.z.approx_eq(&other.z, ulps, epsilon)
     }
 }
 
-impl<F: FullFloat> ApproxEqUlps for Vec4<F> {
+impl<F: FullFloat> ApproxEq for Vec4<F> {
     type Flt = F;
 
-    fn approx_eq_ulps(&self, other: &Self, ulps: <<F as ApproxEqUlps>::Flt as Ulps>::U) -> bool {
-        self.x.approx_eq_ulps(&other.x, ulps)
-            && self.y.approx_eq_ulps(&other.y, ulps)
-            && self.z.approx_eq_ulps(&other.z, ulps)
-            && self.w.approx_eq_ulps(&other.w, ulps)
+    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
+                 epsilon: <F as ApproxEq>::Flt) -> bool
+    {
+        self.x.approx_eq(&other.x, ulps, epsilon)
+            && self.y.approx_eq(&other.y, ulps, epsilon)
+            && self.z.approx_eq(&other.z, ulps, epsilon)
+            && self.w.approx_eq(&other.w, ulps, epsilon)
     }
 }
 
@@ -492,7 +499,7 @@ impl<F: FullFloat> ApproxEqUlps for Vec4<F> {
 
 #[cfg(test)]
 mod tests {
-    use float_cmp:: ApproxEqUlps;
+    use float_cmp:: ApproxEq;
     use super::Vec2;
     const VEC2: Vec2<f32> = Vec2 { x: 1.0, y: 2.0 };
 
@@ -511,7 +518,7 @@ mod tests {
 
     #[test]
     fn test_squared_magnitude() {
-        assert!(VEC2.squared_magnitude().approx_eq_ulps(&5.0, 1));
+        assert!(VEC2.squared_magnitude().approx_eq(&5.0, 1, 1.0 * ::std::f32::EPSILON));
     }
 
     #[test]

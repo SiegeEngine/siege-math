@@ -26,12 +26,12 @@ pub mod position;
 pub use self::position::Position;
 
 use num_traits::{Float, FloatConst, NumAssignOps, NumCast};
-use float_cmp::{Ulps, ApproxEqUlps};
+use float_cmp::{Ulps, ApproxEq};
 
 // This trait allows us to write code generic across both
 // floating point types
 pub trait FullFloat: Float + FloatConst + Default +
-    NumAssignOps + NumCast + Ulps + ApproxEqUlps<Flt=Self>
+    NumAssignOps + NumCast + Ulps + ApproxEq<Flt=Self>
 { }
 impl FullFloat for f32 {}
 impl FullFloat for f64 {}
