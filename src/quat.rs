@@ -39,8 +39,8 @@ impl<F: FullFloat> NQuat<F> {
 
         assert!((w*w + v.squared_magnitude()).sqrt().approx_eq(
             &F::one(),
+            <F as NumCast>::from(20.0_f32).unwrap() * F::epsilon(),
             NumCast::from(20_u32).unwrap(),
-            <F as NumCast>::from(20.0_f32).unwrap() * F::epsilon()
         ));
 
         q
@@ -167,15 +167,15 @@ impl<F: FullFloat> NQuat<F> {
     {
         // If they are the same, we can return the identity quaternion
         if start.approx_eq(&end,
-                           NumCast::from(10_u32).unwrap(),
-                           <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon())
+                           <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon(),
+                           NumCast::from(10_u32).unwrap())
         {
             return Some(NQuat::identity())
         }
         // If they are opposite, there is no quaternion that will work.
         if start.approx_eq(&-end,
-                           NumCast::from(10_u32).unwrap(),
-                           <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon())
+                           <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon(),
+                           NumCast::from(10_u32).unwrap())
         {
             return None
         }
@@ -219,8 +219,8 @@ impl<F: FullFloat> Quat<F> {
     pub fn is_normal(&self) -> bool {
         self.magnitude().approx_eq(
             &F::one(),
-            NumCast::from(10_u32).unwrap(),
             <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon(),
+            NumCast::from(10_u32).unwrap()
         )
     }
 }
@@ -468,22 +468,24 @@ impl<F: FullFloat> From<Mat3<F>> for NQuat<F> {
 impl<F: FullFloat> ApproxEq for Quat<F> {
     type Flt = F;
 
-    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
-                 epsilon: <F as ApproxEq>::Flt) -> bool
+    fn approx_eq(&self, other: &Self,
+                 epsilon: <F as ApproxEq>::Flt,
+                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
     {
-        self.v.approx_eq(&other.v, ulps, epsilon) &&
-            self.w.approx_eq(&other.w, ulps, epsilon)
+        self.v.approx_eq(&other.v, epsilon, ulps) &&
+            self.w.approx_eq(&other.w, epsilon, ulps)
     }
 }
 
 impl<F: FullFloat> ApproxEq for NQuat<F> {
     type Flt = F;
 
-    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
-                 epsilon: <F as ApproxEq>::Flt) -> bool
+    fn approx_eq(&self, other: &Self,
+                 epsilon: <F as ApproxEq>::Flt,
+                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
     {
-        self.v.approx_eq(&other.v, ulps, epsilon) &&
-            self.w.approx_eq(&other.w, ulps, epsilon)
+        self.v.approx_eq(&other.v, epsilon, ulps) &&
+            self.w.approx_eq(&other.w, epsilon, ulps)
     }
 }
 
@@ -538,8 +540,8 @@ mod tests {
         let q2: Quat<f32> = From::from(nq);
         let q2c: Quat<f32> = q2.conjugate();
 
-        assert!(q2.approx_eq(&q, 2, 2.0 * ::std::f32::EPSILON) ||
-                q2c.approx_eq(&q, 2, 2.0 * ::std::f32::EPSILON));
+        assert!(q2.approx_eq(&q, 2.0 * ::std::f32::EPSILON, 2) ||
+                q2c.approx_eq(&q, 2.0 * ::std::f32::EPSILON, 2));
     }
 
     #[test]
@@ -552,8 +554,8 @@ mod tests {
         let (axis2, angle2) = q.as_axis_angle();
         println!("axis {:?} angle {:?} axis {:?} angle {:?}",
                  axis, angle, axis2, angle2);
-        assert!(axis.approx_eq(&axis2, 2, 2.0 * ::std::f32::EPSILON));
-        assert!(angle.approx_eq(&angle2, 2, 2.0 * ::std::f32::EPSILON));
+        assert!(axis.approx_eq(&axis2, 2.0 * ::std::f32::EPSILON, 2));
+        assert!(angle.approx_eq(&angle2, 2.0 * ::std::f32::EPSILON, 2));
     }
 
     #[test]
@@ -568,9 +570,9 @@ mod tests {
 
         let object2 = q.rotate(object);
 
-        assert!(object2.x.approx_eq(&10.0, 2, 2.0 * ::std::f32::EPSILON));
-        assert!(object2.y.approx_eq(&-3.0, 2, 2.0 * ::std::f32::EPSILON));
-        assert!(object2.z.approx_eq(&5.0, 2, 2.0 * ::std::f32::EPSILON));
+        assert!(object2.x.approx_eq(&10.0, 2.0 * ::std::f32::EPSILON, 2));
+        assert!(object2.y.approx_eq(&-3.0, 2.0 * ::std::f32::EPSILON, 2));
+        assert!(object2.z.approx_eq(&5.0, 2.0 * ::std::f32::EPSILON, 2));
     }
 
     /*

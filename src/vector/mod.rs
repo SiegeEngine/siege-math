@@ -230,8 +230,8 @@ macro_rules! impl_vector {
             pub fn is_normal(&self) -> bool {
                 self.magnitude().approx_eq(
                     &F::one(),
-                    NumCast::from(10_u32).unwrap(),
-                    <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon()
+                    <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon(),
+                    NumCast::from(10_u32).unwrap()
                 )
             }
         }
@@ -462,36 +462,39 @@ impl From<Vec4<f32>> for Vec4<f64> {
 impl<F: FullFloat> ApproxEq for Vec2<F> {
     type Flt = F;
 
-    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
-                 epsilon: <F as ApproxEq>::Flt) -> bool
+    fn approx_eq(&self, other: &Self,
+                 epsilon: <F as ApproxEq>::Flt,
+                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
     {
-        self.x.approx_eq(&other.x, ulps, epsilon)
-            && self.y.approx_eq(&other.y, ulps, epsilon)
+        self.x.approx_eq(&other.x, epsilon, ulps)
+            && self.y.approx_eq(&other.y, epsilon, ulps)
     }
 }
 
 impl<F: FullFloat> ApproxEq for Vec3<F> {
     type Flt = F;
 
-    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
-                 epsilon: <F as ApproxEq>::Flt) -> bool
+    fn approx_eq(&self, other: &Self,
+                 epsilon: <F as ApproxEq>::Flt,
+                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
     {
-        self.x.approx_eq(&other.x, ulps, epsilon)
-            && self.y.approx_eq(&other.y, ulps, epsilon)
-            && self.z.approx_eq(&other.z, ulps, epsilon)
+        self.x.approx_eq(&other.x, epsilon, ulps)
+            && self.y.approx_eq(&other.y, epsilon, ulps)
+            && self.z.approx_eq(&other.z, epsilon, ulps)
     }
 }
 
 impl<F: FullFloat> ApproxEq for Vec4<F> {
     type Flt = F;
 
-    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
-                 epsilon: <F as ApproxEq>::Flt) -> bool
+    fn approx_eq(&self, other: &Self,
+                 epsilon: <F as ApproxEq>::Flt,
+                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
     {
-        self.x.approx_eq(&other.x, ulps, epsilon)
-            && self.y.approx_eq(&other.y, ulps, epsilon)
-            && self.z.approx_eq(&other.z, ulps, epsilon)
-            && self.w.approx_eq(&other.w, ulps, epsilon)
+        self.x.approx_eq(&other.x, epsilon, ulps)
+            && self.y.approx_eq(&other.y, epsilon, ulps)
+            && self.z.approx_eq(&other.z, epsilon, ulps)
+            && self.w.approx_eq(&other.w, epsilon, ulps)
     }
 }
 
@@ -518,7 +521,7 @@ mod tests {
 
     #[test]
     fn test_squared_magnitude() {
-        assert!(VEC2.squared_magnitude().approx_eq(&5.0, 1, 1.0 * ::std::f32::EPSILON));
+        assert!(VEC2.squared_magnitude().approx_eq(&5.0, ::std::f32::EPSILON, 1));
     }
 
     #[test]

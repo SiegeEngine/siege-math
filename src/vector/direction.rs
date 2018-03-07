@@ -140,20 +140,22 @@ impl<F: FullFloat> Neg for Direction3<F> {
 impl<F: FullFloat> ApproxEq for Direction2<F> {
     type Flt = F;
 
-    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
-                 epsilon: <F as ApproxEq>::Flt) -> bool
+    fn approx_eq(&self, other: &Self,
+                 epsilon: <F as ApproxEq>::Flt,
+                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
     {
-        self.0.approx_eq(&other.0, ulps, epsilon)
+        self.0.approx_eq(&other.0, epsilon, ulps)
     }
 }
 
 impl<F: FullFloat> ApproxEq for Direction3<F> {
     type Flt = F;
 
-    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
-                 epsilon: <F as ApproxEq>::Flt) -> bool
+    fn approx_eq(&self, other: &Self,
+                 epsilon: <F as ApproxEq>::Flt,
+                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
     {
-        self.0.approx_eq(&other.0, ulps, epsilon)
+        self.0.approx_eq(&other.0, epsilon, ulps)
     }
 }
 

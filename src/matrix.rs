@@ -1024,36 +1024,39 @@ impl<F: FullFloat> Mat3<F> {
 impl<F: FullFloat> ApproxEq for Mat2<F> {
     type Flt = F;
 
-    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
-                 epsilon: <F as ApproxEq>::Flt) -> bool
+    fn approx_eq(&self, other: &Self,
+                 epsilon: <F as ApproxEq>::Flt,
+                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
     {
-        self.x.approx_eq(&other.x, ulps, epsilon) &&
-            self.y.approx_eq(&other.y, ulps, epsilon)
+        self.x.approx_eq(&other.x, epsilon, ulps) &&
+            self.y.approx_eq(&other.y, epsilon, ulps)
     }
 }
 
 impl<F: FullFloat> ApproxEq for Mat3<F> {
     type Flt = F;
 
-    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
-                 epsilon: <F as ApproxEq>::Flt) -> bool
+    fn approx_eq(&self, other: &Self,
+                 epsilon: <F as ApproxEq>::Flt,
+                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
     {
-        self.x.approx_eq(&other.x, ulps, epsilon) &&
-            self.y.approx_eq(&other.y, ulps, epsilon) &&
-            self.z.approx_eq(&other.z, ulps, epsilon)
+        self.x.approx_eq(&other.x, epsilon, ulps) &&
+            self.y.approx_eq(&other.y, epsilon, ulps) &&
+            self.z.approx_eq(&other.z, epsilon, ulps)
     }
 }
 
 impl<F: FullFloat> ApproxEq for Mat4<F> {
     type Flt = F;
 
-    fn approx_eq(&self, other: &Self, ulps: <<F as ApproxEq>::Flt as Ulps>::U,
-                 epsilon: <F as ApproxEq>::Flt) -> bool
+    fn approx_eq(&self, other: &Self,
+                 epsilon: <F as ApproxEq>::Flt,
+                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
     {
-        self.x.approx_eq(&other.x, ulps, epsilon) &&
-            self.y.approx_eq(&other.y, ulps, epsilon) &&
-            self.z.approx_eq(&other.z, ulps, epsilon) &&
-            self.p.approx_eq(&other.p, ulps, epsilon)
+        self.x.approx_eq(&other.x, epsilon, ulps) &&
+            self.y.approx_eq(&other.y, epsilon, ulps) &&
+            self.z.approx_eq(&other.z, epsilon, ulps) &&
+            self.p.approx_eq(&other.p, epsilon, ulps)
     }
 }
 
