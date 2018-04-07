@@ -3,6 +3,7 @@ use num_traits::NumCast;
 use std::ops::{Mul, Div, Add, Sub, Neg};
 use float_cmp::{Ulps, ApproxEq};
 use FullFloat;
+use vector::Vec2;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -58,6 +59,12 @@ impl<F: FullFloat> Angle<F>
     pub fn as_cycles(&self) -> F {
         let two: F = NumCast::from(2.0_f32).unwrap();
         self.0 / (two * F::PI())
+    }
+
+    /// This ranges from -PI to PI, and all 4 quadrants are properly handled.
+    pub fn of_vector(vec: &Vec2<F>) -> Angle<F>
+    {
+        Angle(vec.y.atan2(vec.x))
     }
 }
 
