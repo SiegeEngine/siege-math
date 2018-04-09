@@ -392,6 +392,14 @@ impl<F: FullFloat> From<Vec3<F>> for Vec2<F> {
     }
 }
 
+// -- adding a dimension ------------------------------------------------------
+
+impl<F: FullFloat> Vec3<F> {
+    pub fn to_vec4(&self, w: F) -> Vec4<F> {
+        Vec4 { x: self.x, y: self.y, z: self.z, w: w }
+    }
+}
+
 // ----------------------------------------------------------------------------
 // casting between float types
 
