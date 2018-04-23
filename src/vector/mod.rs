@@ -248,6 +248,18 @@ macro_rules! impl_vector {
             }
         }
 
+        impl<F: FullFloat> Mul<$VecN<F>> for $VecN<F> {
+            type Output = $VecN<F>;
+
+            #[inline]
+            fn mul(self, rhs: $VecN<F>) -> $VecN<F> {
+                $VecN {
+                    $first: self.$first * rhs.$first,
+                    $($field: self.$field * rhs.$field),*
+                }
+            }
+        }
+
         impl<F: FullFloat> MulAssign<F> for $VecN<F> {
             #[inline]
             fn mul_assign(&mut self, rhs: F) {
