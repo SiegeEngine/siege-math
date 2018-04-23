@@ -350,6 +350,17 @@ macro_rules! impl_vector {
                 *self - self.project_onto(axis)
             }
         }
+
+        impl<F: FullFloat> $VecN<F>
+        {
+            #[inline]
+            pub fn exp(&self) -> $VecN<F> {
+                $VecN {
+                    $first: self.$first.exp(),
+                    $($field: self.$field.exp()),*
+                }
+            }
+        }
     }
 }
 
