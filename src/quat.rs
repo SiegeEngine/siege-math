@@ -5,7 +5,7 @@ use std::default::Default;
 use float_cmp::{Ulps, ApproxEq};
 use {FullFloat, Vec3, Mat3, Angle, Direction3};
 
-// Quaternion (general)
+/// Quaternion (general)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct Quat<F> {
@@ -135,6 +135,7 @@ impl<F: FullFloat> From<NQuat<F>> for Quat<F> {
 // Axis/Angle
 
 impl<F: FullFloat> NQuat<F> {
+    /// Create an NQuat from an axis and angle
     // This always yields normal quats (tested)
     pub fn from_axis_angle(axis: &Direction3<F>, angle: &Angle<F>) -> NQuat<F>
     {
@@ -149,6 +150,7 @@ impl<F: FullFloat> NQuat<F> {
 }
 
 impl<F: FullFloat> NQuat<F> {
+    /// Determine the axis/angle representation of an NQuat
     pub fn as_axis_angle(&self) -> (Direction3<F>, Angle<F>)
     {
         let two: F = NumCast::from(2.0_f32).unwrap();
@@ -365,6 +367,8 @@ impl<F: FullFloat> NQuat<F>
 
 impl<F: FullFloat> NQuat<F>
 {
+    /// This applies the NQuat as an operator to the vector v, yielding the rotated
+    /// vector.
     // In general, the sandwich product qvq* does not care if Q is normalized or not.
     // However we presume it is normalized so we can take some shortcuts.
     // See Eric Lengyel, Foundations of Game Engine Development: Vol.1 Mathematics, p89

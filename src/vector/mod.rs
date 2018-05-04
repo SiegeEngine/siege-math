@@ -15,6 +15,7 @@ use num_traits::NumCast;
 use float_cmp::{Ulps, ApproxEq};
 use FullFloat;
 
+/// A 2-element vector
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
@@ -23,6 +24,7 @@ pub struct Vec2<F> {
     pub y: F,
 }
 
+/// A 3-element vector
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
@@ -32,6 +34,7 @@ pub struct Vec3<F> {
     pub z: F,
 }
 
+/// A 4-element vector
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]

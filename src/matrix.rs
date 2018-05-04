@@ -18,6 +18,12 @@ use {Angle, FullFloat};
 // (Subsequently we have made the internals public so that we can define
 //  constant matrices).
 
+/// A 2x2 matrix.
+///
+/// This matrix is internally stored column-major (as that is better for
+/// GPU compatibility and possibly other reasons), but the API (e.g.
+/// the order of function parameters to the new() function) is row-major,
+/// since that is how people write matrices on paper.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
@@ -26,6 +32,12 @@ pub struct Mat2<F> {
     pub y: Vec2<F>
 }
 
+/// A 3x3 matrix
+///
+/// This matrix is internally stored column-major (as that is better for
+/// GPU compatibility and possibly other reasons), but the API (e.g.
+/// the order of function parameters to the new() function) is row-major,
+/// since that is how people write matrices on paper.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
@@ -35,6 +47,12 @@ pub struct Mat3<F> {
     pub z: Vec3<F>
 }
 
+/// A 4x4 matrix
+///
+/// This matrix is internally stored column-major (as that is better for
+/// GPU compatibility and possibly other reasons), but the API (e.g.
+/// the order of function parameters to the new() function) is row-major,
+/// since that is how people write matrices on paper.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Serialize, Deserialize)]
@@ -131,6 +149,8 @@ impl<F: FullFloat> IndexMut<(usize,usize)> for Mat4<F> {
 // -- new ---------------------------------------------------------------------
 
 impl<F: FullFloat> Mat2<F> {
+    /// Create a new 2x2 Matrix. Specify parameters in row-major order
+    /// (as typically written on paper and in math texts)
     #[inline]
     pub fn new(r0c0: F, r0c1: F,
                r1c0: F, r1c1: F) -> Mat2<F>
@@ -149,6 +169,8 @@ impl<F: FullFloat> Mat2<F> {
 }
 
 impl<F: FullFloat> Mat3<F> {
+    /// Create a new 3x3 Matrix. Specify parameters in row-major order
+    /// (as typically written on paper and in math texts)
     #[inline]
     pub fn new(r0c0: F, r0c1: F, r0c2: F,
                r1c0: F, r1c1: F, r1c2: F,
@@ -169,6 +191,8 @@ impl<F: FullFloat> Mat3<F> {
 }
 
 impl<F: FullFloat> Mat4<F> {
+    /// Create a new 4x4 Matrix. Specify parameters in row-major order
+    /// (as typically written on paper and in math texts)
     #[inline]
     pub fn new(r0c0: F, r0c1: F, r0c2: F, r0c3: F,
                r1c0: F, r1c1: F, r1c2: F, r1c3: F,
