@@ -16,6 +16,11 @@ siege-math was developed in response to several other math crates (cgmath and na
 going in directions slightly adverse to our usage. As a math library is actually a
 rather small thing, we were not too fussed about creating a new one.
 
+## Prefer Other Crates
+
+[cgmath](https://crates.io/crates/siege-math) and [nalgebra](https://crates.io/crates/nalgebra)
+are much better math crates. I would not recommending using this crate. I intend to move
+off of it myself.
 
 ## Work TBD
 
