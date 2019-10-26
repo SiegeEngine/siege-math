@@ -6,7 +6,9 @@ use FullFloat;
 use vector::Vec2;
 
 /// A type for representing an angle, without needing to remember if it is
-/// denominated in Radians, Degrees, or otherwise.
+/// denominated in Radians, Degrees, or otherwise.  Angles are NOT automatically
+/// normalized -- often you want to know if something spun around twice.
+// internally stored as radians
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[derive(Serialize, Deserialize)]
@@ -78,6 +80,16 @@ impl<F: FullFloat> Angle<F>
     pub fn of_vector(vec: &Vec2<F>) -> Angle<F>
     {
         Angle(vec.y.atan2(vec.x))
+    }
+
+    /// Normalize to within the range of 0 to 2*PI
+    pub fn normalize(&mut self) {
+        let two: F = NumCast::from(2.0_f32).unwrap();
+        let twopi = two * F::PI();
+        let zero: F = NumCast::from(0.0_f32).unwrap();
+        // Remainder within -twopi ... +twopi
+        self.0 = self.0 % twopi;
+        if self.0 < zero { self.0 += twopi; }
     }
 }
 
@@ -189,5 +201,16 @@ mod tests {
             &Angle::from_cycles(-3.0/8.0), 2.0 * EPSILON, 2));
         assert!(Angle::of_vector(&q4).approx_eq(
             &Angle::from_cycles(-1.0/8.0), 2.0 * EPSILON, 2));
+    }
+
+    #[test]
+    fn test_normalize() {
+        let mut a1 = Angle::from_degrees(370.0_f32);
+        a1.normalize();
+        assert!(a1.as_degrees().approx_eq(&10.0_f32, 2.0 * EPSILON, 2));
+
+        let mut a1 = Angle::from_degrees(-370.0_f32);
+        a1.normalize();
+        assert!(a1.as_degrees().approx_eq(&350.0_f32, 2.0 * EPSILON, 2));
     }
 }
