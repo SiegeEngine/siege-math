@@ -1,7 +1,7 @@
 
 use std::ops::{Deref, Sub, Add, Neg};
 use serde::{Serialize, Deserialize};
-use float_cmp::{Ulps, ApproxEq};
+use float_cmp::ApproxEq;
 use super::{Vec2, Vec3, Vec4};
 use crate::FullFloat;
 
@@ -193,24 +193,20 @@ impl From<Point3<f32>> for Point3<f64> {
 // ----------------------------------------------------------------------------
 // ApproxEq
 
-impl<F: FullFloat> ApproxEq for Point2<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a Point2<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.0.approx_eq(&other.0, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.0.approx_eq(&other.0, margin)
     }
 }
 
-impl<F: FullFloat> ApproxEq for Point3<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a Point3<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.0.approx_eq(&other.0, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.0.approx_eq(&other.0, margin)
     }
 }

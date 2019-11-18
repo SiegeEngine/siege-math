@@ -3,7 +3,7 @@ use num_traits::NumCast;
 use std::ops::{Index, IndexMut, Mul, Add};
 use std::default::Default;
 use serde::{Serialize, Deserialize};
-use float_cmp::{Ulps, ApproxEq};
+use float_cmp::ApproxEq;
 use crate::vector::{Vec2, Vec3, Vec4, Direction3, Point3};
 use crate::{Angle, FullFloat};
 
@@ -1046,42 +1046,36 @@ impl<F: FullFloat> Mat3<F> {
 // ----------------------------------------------------------------------------
 // ApproxEq
 
-impl<F: FullFloat> ApproxEq for Mat2<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a Mat2<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.x.approx_eq(&other.x, epsilon, ulps) &&
-            self.y.approx_eq(&other.y, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.x.approx_eq(&other.x, margin)
+            && self.y.approx_eq(&other.y, margin)
     }
 }
 
-impl<F: FullFloat> ApproxEq for Mat3<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a Mat3<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.x.approx_eq(&other.x, epsilon, ulps) &&
-            self.y.approx_eq(&other.y, epsilon, ulps) &&
-            self.z.approx_eq(&other.z, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.x.approx_eq(&other.x, margin)
+            && self.y.approx_eq(&other.y, margin)
+            && self.z.approx_eq(&other.z, margin)
     }
 }
 
-impl<F: FullFloat> ApproxEq for Mat4<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a Mat4<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.x.approx_eq(&other.x, epsilon, ulps) &&
-            self.y.approx_eq(&other.y, epsilon, ulps) &&
-            self.z.approx_eq(&other.z, epsilon, ulps) &&
-            self.p.approx_eq(&other.p, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.x.approx_eq(&other.x, margin)
+            && self.y.approx_eq(&other.y, margin)
+            && self.z.approx_eq(&other.z, margin)
+            && self.p.approx_eq(&other.p, margin)
     }
 }
 

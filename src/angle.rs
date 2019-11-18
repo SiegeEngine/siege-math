@@ -2,7 +2,7 @@
 use num_traits::NumCast;
 use serde::{Serialize, Deserialize};
 use std::ops::{Mul, Div, Add, Sub, Neg};
-use float_cmp::{Ulps, ApproxEq};
+use float_cmp::ApproxEq;
 use crate::FullFloat;
 use crate::vector::Vec2;
 
@@ -138,14 +138,12 @@ impl<F: FullFloat> Neg for Angle<F> {
     }
 }
 
-impl<F: FullFloat> ApproxEq for Angle<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a Angle<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.0.approx_eq(&other.0, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.0.approx_eq(other.0, margin)
     }
 }
 
@@ -182,36 +180,36 @@ mod tests {
         let h1 = Angle::from_radians(PI);
         let h2 = Angle::from_degrees(180.0);
         let h3 = Angle::from_cycles(0.5);
-        assert!(h1.approx_eq(&h2, 2.0 * EPSILON, 2));
-        assert!(h1.approx_eq(&h3, 2.0 * EPSILON, 2));
-        assert!(h2.approx_eq(&h3, 2.0 * EPSILON, 2));
+        assert!(h1.approx_eq(&h2, (2.0 * EPSILON, 2)));
+        assert!(h1.approx_eq(&h3, (2.0 * EPSILON, 2)));
+        assert!(h2.approx_eq(&h3, (2.0 * EPSILON, 2)));
     }
 
     #[test]
     fn test_vector_angle() {
-        let q1 = Vec2::new(1.0, 1.0);
-        let q2 = Vec2::new(-1.0, 1.0);
-        let q3 = Vec2::new(-1.0, -1.0);
-        let q4 = Vec2::new(1.0, -1.0);
+        let q1 = Vec2::new(1.0_f32, 1.0);
+        let q2 = Vec2::new(-1.0_f32, 1.0);
+        let q3 = Vec2::new(-1.0_f32, -1.0);
+        let q4 = Vec2::new(1.0_f32, -1.0);
 
         assert!(Angle::of_vector(&q1).approx_eq(
-            &Angle::from_cycles(1.0/8.0), 2.0 * EPSILON, 2));
+            &Angle::from_cycles(1.0/8.0), (2.0 * EPSILON, 2)));
         assert!(Angle::of_vector(&q2).approx_eq(
-            &Angle::from_cycles(3.0/8.0), 2.0 * EPSILON, 2));
+            &Angle::from_cycles(3.0/8.0), (2.0 * EPSILON, 2)));
         assert!(Angle::of_vector(&q3).approx_eq(
-            &Angle::from_cycles(-3.0/8.0), 2.0 * EPSILON, 2));
+            &Angle::from_cycles(-3.0/8.0), (2.0 * EPSILON, 2)));
         assert!(Angle::of_vector(&q4).approx_eq(
-            &Angle::from_cycles(-1.0/8.0), 2.0 * EPSILON, 2));
+            &Angle::from_cycles(-1.0/8.0), (2.0 * EPSILON, 2)));
     }
 
     #[test]
     fn test_normalize() {
         let mut a1 = Angle::from_degrees(370.0_f32);
         a1.normalize();
-        assert!(a1.as_degrees().approx_eq(&10.0_f32, 2.0 * EPSILON, 2));
+        assert!(a1.as_degrees().approx_eq(10.0_f32, (2.0 * EPSILON, 2)));
 
         let mut a1 = Angle::from_degrees(-370.0_f32);
         a1.normalize();
-        assert!(a1.as_degrees().approx_eq(&350.0_f32, 2.0 * EPSILON, 2));
+        assert!(a1.as_degrees().approx_eq(350.0_f32, (2.0 * EPSILON, 2)));
     }
 }

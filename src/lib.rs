@@ -24,7 +24,7 @@ use float_cmp::{Ulps, ApproxEq};
 // This trait allows us to write code generic across both
 // floating point types
 pub trait FullFloat: Float + FloatConst + Default +
-    NumAssignOps + NumCast + Ulps + ApproxEq<Flt=Self>
+    NumAssignOps + NumCast + Ulps + ApproxEq
 { }
 impl FullFloat for f32 {}
 impl FullFloat for f64 {}

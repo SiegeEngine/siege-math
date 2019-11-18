@@ -3,7 +3,7 @@ use std::ops::{Add, Sub, Mul, AddAssign, SubAssign, MulAssign};
 use serde::{Serialize, Deserialize};
 use num_traits::NumCast;
 use std::default::Default;
-use float_cmp::{Ulps, ApproxEq};
+use float_cmp::ApproxEq;
 use crate::{FullFloat, Vec3, Mat3, Angle, Direction3};
 
 /// Quaternion (general)
@@ -38,11 +38,9 @@ impl<F: FullFloat> NQuat<F> {
             w: w,
         };
 
+        let margin: F::Margin = Default::default();
         assert!((w*w + v.squared_magnitude()).sqrt().approx_eq(
-            &F::one(),
-            <F as NumCast>::from(20.0_f32).unwrap() * F::epsilon(),
-            NumCast::from(20_u32).unwrap(),
-        ));
+            F::one(), margin));
 
         q
     }
@@ -168,17 +166,15 @@ impl<F: FullFloat> NQuat<F> {
     // This returns None if start/end are the same or opposite)
     pub fn from_directions(start: Direction3<F>, end: Direction3<F>) -> Option<NQuat<F>>
     {
+        let margin: F::Margin = Default::default();
+
         // If they are the same, we can return the identity quaternion
-        if start.approx_eq(&end,
-                           <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon(),
-                           NumCast::from(10_u32).unwrap())
+        if start.approx_eq(&end, margin)
         {
             return Some(NQuat::identity())
         }
         // If they are opposite, there is no quaternion that will work.
-        if start.approx_eq(&-end,
-                           <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon(),
-                           NumCast::from(10_u32).unwrap())
+        if start.approx_eq(&-end, margin)
         {
             return None
         }
@@ -220,11 +216,8 @@ impl<F: FullFloat> Quat<F>
 
 impl<F: FullFloat> Quat<F> {
     pub fn is_normal(&self) -> bool {
-        self.magnitude().approx_eq(
-            &F::one(),
-            <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon(),
-            NumCast::from(10_u32).unwrap()
-        )
+        let margin: F::Margin = Default::default();
+        self.magnitude().approx_eq(F::one(), margin)
     }
 }
 
@@ -470,27 +463,23 @@ impl<F: FullFloat> From<Mat3<F>> for NQuat<F> {
 // ----------------------------------------------------------------------------
 // ApproxEq
 
-impl<F: FullFloat> ApproxEq for Quat<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a Quat<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.v.approx_eq(&other.v, epsilon, ulps) &&
-            self.w.approx_eq(&other.w, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.v.approx_eq(&other.v, margin)
+            && self.w.approx_eq(other.w, margin)
     }
 }
 
-impl<F: FullFloat> ApproxEq for NQuat<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a NQuat<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.v.approx_eq(&other.v, epsilon, ulps) &&
-            self.w.approx_eq(&other.w, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.v.approx_eq(&other.v, margin)
+            && self.w.approx_eq(other.w, margin)
     }
 }
 
@@ -545,8 +534,8 @@ mod tests {
         let q2: Quat<f32> = From::from(nq);
         let q2c: Quat<f32> = q2.conjugate();
 
-        assert!(q2.approx_eq(&q, 2.0 * ::std::f32::EPSILON, 2) ||
-                q2c.approx_eq(&q, 2.0 * ::std::f32::EPSILON, 2));
+        assert!(q2.approx_eq(&q, (2.0 * ::std::f32::EPSILON, 2)) ||
+                q2c.approx_eq(&q, (2.0 * ::std::f32::EPSILON, 2)));
     }
 
     #[test]
@@ -559,8 +548,8 @@ mod tests {
         let (axis2, angle2) = q.as_axis_angle();
         println!("axis {:?} angle {:?} axis {:?} angle {:?}",
                  axis, angle, axis2, angle2);
-        assert!(axis.approx_eq(&axis2, 2.0 * ::std::f32::EPSILON, 2));
-        assert!(angle.approx_eq(&angle2, 2.0 * ::std::f32::EPSILON, 2));
+        assert!(axis.approx_eq(&axis2, (2.0 * ::std::f32::EPSILON, 2)));
+        assert!(angle.approx_eq(&angle2, (2.0 * ::std::f32::EPSILON, 2)));
     }
 
     #[test]
@@ -575,9 +564,9 @@ mod tests {
 
         let object2 = q.rotate(object);
 
-        assert!(object2.x.approx_eq(&10.0, 2.0 * ::std::f32::EPSILON, 2));
-        assert!(object2.y.approx_eq(&-3.0, 2.0 * ::std::f32::EPSILON, 2));
-        assert!(object2.z.approx_eq(&5.0, 2.0 * ::std::f32::EPSILON, 2));
+        assert!(object2.x.approx_eq(10.0, (2.0 * ::std::f32::EPSILON, 2)));
+        assert!(object2.y.approx_eq(-3.0, (2.0 * ::std::f32::EPSILON, 2)));
+        assert!(object2.z.approx_eq(5.0, (2.0 * ::std::f32::EPSILON, 2)));
     }
 
     /*

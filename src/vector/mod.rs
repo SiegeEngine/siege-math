@@ -1,5 +1,4 @@
 
-
 pub mod point;
 pub use self::point::{Point2, Point3};
 
@@ -12,8 +11,7 @@ use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
                Add, AddAssign, Sub, SubAssign};
 use std::default::Default;
 use serde::{Serialize, Deserialize};
-use num_traits::NumCast;
-use float_cmp::{Ulps, ApproxEq};
+use float_cmp::ApproxEq;
 use crate::FullFloat;
 
 /// A 2-element vector
@@ -232,11 +230,8 @@ macro_rules! impl_vector {
 
         impl<F: FullFloat> $VecN<F> {
             pub fn is_normal(&self) -> bool {
-                self.magnitude().approx_eq(
-                    &F::one(),
-                    <F as NumCast>::from(10.0_f32).unwrap() * F::epsilon(),
-                    NumCast::from(10_u32).unwrap()
-                )
+                let margin: F::Margin = Default::default();
+                self.magnitude().approx_eq(F::one(), margin)
             }
         }
 
@@ -494,42 +489,36 @@ impl From<Vec4<f32>> for Vec4<f64> {
 // ----------------------------------------------------------------------------
 // Approx Eq
 
-impl<F: FullFloat> ApproxEq for Vec2<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a Vec2<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.x.approx_eq(&other.x, epsilon, ulps)
-            && self.y.approx_eq(&other.y, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.x.approx_eq(other.x, margin)
+            && self.y.approx_eq(other.y, margin)
     }
 }
 
-impl<F: FullFloat> ApproxEq for Vec3<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a Vec3<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.x.approx_eq(&other.x, epsilon, ulps)
-            && self.y.approx_eq(&other.y, epsilon, ulps)
-            && self.z.approx_eq(&other.z, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.x.approx_eq(other.x, margin)
+            && self.y.approx_eq(other.y, margin)
+            && self.z.approx_eq(other.z, margin)
     }
 }
 
-impl<F: FullFloat> ApproxEq for Vec4<F> {
-    type Flt = F;
+impl<'a, M: Copy + Default, F: Copy + ApproxEq<Margin=M>> ApproxEq for &'a Vec4<F> {
+    type Margin = M;
 
-    fn approx_eq(&self, other: &Self,
-                 epsilon: <F as ApproxEq>::Flt,
-                 ulps: <<F as ApproxEq>::Flt as Ulps>::U) -> bool
-    {
-        self.x.approx_eq(&other.x, epsilon, ulps)
-            && self.y.approx_eq(&other.y, epsilon, ulps)
-            && self.z.approx_eq(&other.z, epsilon, ulps)
-            && self.w.approx_eq(&other.w, epsilon, ulps)
+    fn approx_eq<T: Into<Self::Margin>>(self, other: Self, margin: T) -> bool {
+        let margin = margin.into();
+        self.x.approx_eq(other.x, margin)
+            && self.y.approx_eq(other.y, margin)
+            && self.z.approx_eq(other.z, margin)
+            && self.w.approx_eq(other.w, margin)
     }
 }
 
@@ -537,7 +526,7 @@ impl<F: FullFloat> ApproxEq for Vec4<F> {
 
 #[cfg(test)]
 mod tests {
-    use float_cmp:: ApproxEq;
+    use float_cmp::{ApproxEq, F32Margin};
     use super::Vec2;
     const VEC2: Vec2<f32> = Vec2 { x: 1.0, y: 2.0 };
 
@@ -556,7 +545,7 @@ mod tests {
 
     #[test]
     fn test_squared_magnitude() {
-        assert!(VEC2.squared_magnitude().approx_eq(&5.0, ::std::f32::EPSILON, 1));
+        assert!(VEC2.squared_magnitude().approx_eq(5.0, F32Margin::default()));
     }
 
     #[test]
