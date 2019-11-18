@@ -11,6 +11,7 @@ pub use self::direction::{Direction2, Direction3,
 use std::ops::{Index, IndexMut, Mul, MulAssign, Div, DivAssign, Neg,
                Add, AddAssign, Sub, SubAssign};
 use std::default::Default;
+use serde::{Serialize, Deserialize};
 use num_traits::NumCast;
 use float_cmp::{Ulps, ApproxEq};
 use FullFloat;

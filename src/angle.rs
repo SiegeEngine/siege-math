@@ -1,5 +1,6 @@
 
 use num_traits::NumCast;
+use serde::{Serialize, Deserialize};
 use std::ops::{Mul, Div, Add, Sub, Neg};
 use float_cmp::{Ulps, ApproxEq};
 use FullFloat;

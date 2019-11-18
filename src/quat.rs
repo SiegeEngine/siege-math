@@ -1,5 +1,6 @@
 
 use std::ops::{Add, Sub, Mul, AddAssign, SubAssign, MulAssign};
+use serde::{Serialize, Deserialize};
 use num_traits::NumCast;
 use std::default::Default;
 use float_cmp::{Ulps, ApproxEq};

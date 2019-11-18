@@ -2,6 +2,7 @@
 use num_traits::NumCast;
 use std::ops::{Index, IndexMut, Mul, Add};
 use std::default::Default;
+use serde::{Serialize, Deserialize};
 use float_cmp::{Ulps, ApproxEq};
 use vector::{Vec2, Vec3, Vec4, Direction3, Point3};
 use {Angle, FullFloat};
