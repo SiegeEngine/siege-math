@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use num_traits::NumCast;
 use std::default::Default;
 use float_cmp::{Ulps, ApproxEq};
-use {FullFloat, Vec3, Mat3, Angle, Direction3};
+use crate::{FullFloat, Vec3, Mat3, Angle, Direction3};
 
 /// Quaternion (general)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -498,7 +498,7 @@ impl<F: FullFloat> ApproxEq for NQuat<F> {
 
 #[cfg(test)]
 mod tests {
-    use {Quat, NQuat, Vec3, Mat3, Angle, Direction3};
+    use crate::{Quat, NQuat, Vec3, Mat3, Angle, Direction3};
 
     #[test]
     fn test_quat_basic() {

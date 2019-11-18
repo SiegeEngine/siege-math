@@ -1,6 +1,6 @@
 
 use serde::{Serialize, Deserialize};
-use {Point3, NQuat};
+use crate::{Point3, NQuat};
 
 /// A position is a combination of a point and an orientation
 ///

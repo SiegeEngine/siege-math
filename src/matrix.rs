@@ -4,8 +4,8 @@ use std::ops::{Index, IndexMut, Mul, Add};
 use std::default::Default;
 use serde::{Serialize, Deserialize};
 use float_cmp::{Ulps, ApproxEq};
-use vector::{Vec2, Vec3, Vec4, Direction3, Point3};
-use {Angle, FullFloat};
+use crate::vector::{Vec2, Vec3, Vec4, Direction3, Point3};
+use crate::{Angle, FullFloat};
 
 // NOTE: we store matrices in column-major order, which means we pre-multiply.
 // This is traditional so matrices directly copied to the GPU will work with

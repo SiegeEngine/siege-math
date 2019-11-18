@@ -3,7 +3,7 @@ use std::ops::{Deref, Sub, Add, Neg};
 use serde::{Serialize, Deserialize};
 use float_cmp::{Ulps, ApproxEq};
 use super::{Vec2, Vec3, Vec4};
-use FullFloat;
+use crate::FullFloat;
 
 /// Point vector in 2-dimensions
 #[repr(C)]

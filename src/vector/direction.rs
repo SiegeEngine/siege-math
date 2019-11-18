@@ -3,7 +3,7 @@ use std::ops::{Deref, Neg};
 use serde::{Serialize, Deserialize};
 use float_cmp::{Ulps, ApproxEq};
 use super::{Vec2, Vec3, Vec4};
-use {Angle, FullFloat};
+use crate::{Angle, FullFloat};
 
 /// Direction vector in 2-dimensions (normalized)
 #[repr(C)]

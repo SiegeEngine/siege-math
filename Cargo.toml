@@ -8,6 +8,7 @@ documentation = "https://docs.rs/siege-math"
 readme = "README.md"
 keywords = [ "siege", "math" ]
 license = "MIT"
+edition = "2018"
 
 [dependencies]
 num-traits = "0.2"

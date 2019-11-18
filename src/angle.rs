@@ -3,8 +3,8 @@ use num_traits::NumCast;
 use serde::{Serialize, Deserialize};
 use std::ops::{Mul, Div, Add, Sub, Neg};
 use float_cmp::{Ulps, ApproxEq};
-use FullFloat;
-use vector::Vec2;
+use crate::FullFloat;
+use crate::vector::Vec2;
 
 /// A type for representing an angle, without needing to remember if it is
 /// denominated in Radians, Degrees, or otherwise.  Angles are NOT automatically
@@ -154,7 +154,7 @@ mod tests {
     use super::*;
     use std::f32::consts::PI;
     use std::f32::EPSILON;
-    use vector::Vec2;
+    use crate::vector::Vec2;
 
     #[test]
     fn test_radians() {

@@ -14,7 +14,7 @@ use std::default::Default;
 use serde::{Serialize, Deserialize};
 use num_traits::NumCast;
 use float_cmp::{Ulps, ApproxEq};
-use FullFloat;
+use crate::FullFloat;
 
 /// A 2-element vector
 #[repr(C)]
