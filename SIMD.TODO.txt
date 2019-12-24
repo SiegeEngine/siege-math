@@ -1,0 +1,29 @@
+SIMD info:
+
+  For 4x f32s, you need SSE support (128 bit width XMM registers)
+    type Four = __m128;
+    type Two = (f32, f32);  // there is no simd of 2x f32
+
+  For 4x f64s, you need AVX support (256 bit width YMM registers)
+    type Four = __m256d;
+    type Two = __m128d;
+
+  Operations we have:
+    zero
+    squared magnitude: multiply each lane by itself, then sum (dot product with self)
+    magnitude:  squared magnitude, then sqrt or simd:rsqrt
+    mul: multiply lanes
+    div: div lanes
+    add: add lanes
+    sub: sub lanes
+    dot: multiply lanes, then sum
+    exp: exp each lane (one operand)
+    approx_eq: approx_eq each lane to a margin... slow operation.
+
+
+Redefine in SIMD code:
+  Quat:  redefine internally as a Four in conditional code
+  Position:  redefine internally as two Fours (the point part only needs 3, so we ignore one field)
+  Vec2:  redefine internally as Two
+  Vec3:  redefine internally as Four
+  Vec4:  redefine internally as Four
