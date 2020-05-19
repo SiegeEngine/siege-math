@@ -92,6 +92,18 @@ impl<F: FullFloat> Angle<F>
         self.0 = self.0 % twopi;
         if self.0 < zero { self.0 += twopi; }
     }
+
+    pub fn sin(&self) -> F {
+        self.0.sin()
+    }
+
+    pub fn cos(&self) -> F {
+        self.0.cos()
+    }
+
+    pub fn tan(&self) -> F {
+        self.0.tan()
+    }
 }
 
 impl<F: FullFloat> Mul<F> for Angle<F>
@@ -102,6 +114,18 @@ impl<F: FullFloat> Mul<F> for Angle<F>
         Angle(self.0 * rhs)
     }
 }
+
+/* Unfortunately rust wont let us define this trait, which means
+  we cannot say (2.0 * angle), we have to say (angle * 2.0)
+impl<F: FullFloat> Mul<Angle<F>> for F
+{
+    type Output = Angle<F>;
+
+    fn mul(self, rhs: Angle<F>) -> Angle<F> {
+        Angle(self * rhs.0)
+    }
+}
+ */
 
 impl<F: FullFloat> Div<F> for Angle<F>
 {
