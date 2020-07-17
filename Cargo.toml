@@ -1,6 +1,6 @@
 [package]
 name = "siege-math"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["Mike Dilger <mike@optcomp.nz>"]
 description = "Math library for the Siege Engine"
 repository = "https://github.com/SiegeEngine/siege-math"
